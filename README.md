@@ -8,6 +8,8 @@ The goal is bots that play like smart Dota 2 players. **Completely fair:** no bo
 stats from the scripts, no cheats, no difficulty voting, no online requests. Install, start a lobby and play.
 
 > Bots installed correctly have names ending with **`.HATS`**.
+>
+> 🇷🇺 **Подробная инструкция по установке и запуску на русском: [docs/INSTALL_RU.md](docs/INSTALL_RU.md)**
 
 ---
 
