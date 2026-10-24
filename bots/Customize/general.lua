@@ -110,7 +110,7 @@ Customize.Force_Group_Push_Level = 1
 
 -- Set how frequently you want the bots to push. 
 -- 1 is default, bot may choose to farm more in game. 2 is balanced for push vs farm. 3 is almost no farm, all push.
-Customize.Push_Frequency = 1
+Customize.Push_Frequency = 3
 
 -- The Enhanced Fretbots mode settings:
 -- For more about Fretbots mode: https://github.com/forest0xia/dota2bot-OpenHyperAI/discussions/68
@@ -136,7 +136,17 @@ Customize.Fretbots = {
 -- Bots can become slow or dumb in reaction and decision making if you set this value to a higher number.
 -- When doing Local Host, you can potentially improve PC performance (FPS) by setting this to 1 to 10, which sacrifices some bot IQ/performance.
 -- This won't be very effective for FPS improvement because Valve has a lot of compute on their side that your PC have to handle for Local Hosting.
-Customize.ThinkLess = 1;
+Customize.ThinkLess = 0;
+
+-- Human-like reaction delay for bots' spells and items.
+-- When a new enemy hero shows up nearby, the bot waits Min..Max seconds before casting.
+-- After finishing a cast, it waits Between_Min..Between_Max seconds before the next one.
+-- Set Enable = false to get instant (inhumanly fast) reactions.
+Customize.Reaction_Delay = {
+    Enable = true,
+    Min = 0.25, Max = 0.45,
+    Between_Min = 0.10, Between_Max = 0.30,
+}
 
 return Customize
 

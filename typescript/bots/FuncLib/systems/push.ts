@@ -492,7 +492,9 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
     // all bots join that lane. Only enforced when deep enough to matter — otherwise
     // bots should split push different lanes for map pressure.
     if (_isAllBotsGame === null) {
-        _isAllBotsGame = !Fu.Utils.IsHumanPlayerInTeam(GetTeam()) && !Fu.Utils.IsHumanPlayerInTeam(GetOpposingTeam());
+        // Smart Bots: enable coordinated team pushing for any team without human players
+        // (originally only in all-bot games), so enemy bots push like a team against humans.
+        _isAllBotsGame = !Fu.Utils.IsHumanPlayerInTeam(GetTeam());
     }
     if (_isAllBotsGame && !gameState.isLaningPhase && !gameState.isEarlyGame) {
         // Detect: which lane has 3+ allies pushing past river?

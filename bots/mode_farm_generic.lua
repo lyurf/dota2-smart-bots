@@ -5,7 +5,7 @@ end
 local Utils = require( GetScriptDirectory()..'/FuncLib/systems/utils' )
 local Version = require(GetScriptDirectory()..'/FuncLib/systems/version')
 local Localization = require( GetScriptDirectory()..'/FuncLib/systems/localization' )
-local Customize = require( GetScriptDirectory()..'/Customize/general' )
+local Customize = require( GetScriptDirectory()..'/FuncLib/systems/custom_loader' ) -- Smart Bots: use the shared loader so vscripts/game/Customize overrides apply here too
 
 local bot = GetBot();
 local X = {}
@@ -281,7 +281,7 @@ function GetDesireHelper()
 	or (Fu.DoesTeamHaveAegis() and not Fu.IsEarlyGame() and nAliveAllyCountEarly >= 4)
 	or X.IsUnitAroundLocation(GetAncient(GetTeam()):GetLocation(), 3200)
 	or #nEnemyHeroes > 0
-	or (nAliveEnemyCountEarly <= 1 and networthAdvantage > 10000)
+	or (nAliveEnemyCountEarly <= 2) -- Smart Bots: stop farming and go push when <=2 enemies are alive
     then
 		if DotaTime() > 10 * 60 and DotaTime() > (bot._lastFarmEarlyLog or 0) + 15 then
 			bot._lastFarmEarlyLog = DotaTime()
@@ -294,7 +294,7 @@ function GetDesireHelper()
 				#nEnemyHeroes,
 				tostring(X.IsUnitAroundLocation(GetAncient(GetTeam()):GetLocation(), 3200)),
 				tostring(Fu.DoesTeamHaveAegis() and not Fu.IsEarlyGame() and nAliveAllyCountEarly >= 4),
-				tostring(nAliveEnemyCountEarly <= 1 and networthAdvantage > 10000),
+				tostring(nAliveEnemyCountEarly <= 2),
 				nAliveAllyCountEarly, nAliveEnemyCountEarly))
 		end
         bot._farmExitReason = 'early_exit'

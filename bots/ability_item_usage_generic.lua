@@ -8575,7 +8575,47 @@ local function UseGlyph()
 
 end
 
+-- ============================================================================
+-- Smart Bots: human-like reaction delay for spells and items.
+-- When a new enemy hero appears within 1600 range, the bot waits Min..Max seconds
+-- before casting anything. After finishing a cast, it waits Between_Min..Between_Max.
+-- Configure via Customize.Reaction_Delay in Customize/general.lua.
+-- ============================================================================
+local ReactionDelayCfg = Customize.Reaction_Delay or {}
+local bReactionDelayOn = Customize.Enable ~= false and ReactionDelayCfg.Enable ~= false
+local fReactionReadyAt = 0
+local tSeenEnemyIds = {}
+local bWasCasting = false
+
+local function IsReactionReady()
+	if not bReactionDelayOn then return true end
+	local now = DotaTime()
+
+	local tCurrent = {}
+	local bNewEnemy = false
+	for _, enemy in pairs(bot:GetNearbyHeroes(1600, true, BOT_MODE_NONE) or {}) do
+		if enemy ~= nil and not enemy:IsNull() then
+			local id = enemy:GetPlayerID()
+			tCurrent[id] = true
+			if not tSeenEnemyIds[id] then bNewEnemy = true end
+		end
+	end
+	tSeenEnemyIds = tCurrent
+	if bNewEnemy then
+		fReactionReadyAt = math.max(fReactionReadyAt, now + RandomFloat(ReactionDelayCfg.Min or 0.25, ReactionDelayCfg.Max or 0.45))
+	end
+
+	local bCasting = bot:IsCastingAbility() or bot:IsUsingAbility() or bot:IsChanneling()
+	if bWasCasting and not bCasting then
+		fReactionReadyAt = math.max(fReactionReadyAt, now + RandomFloat(ReactionDelayCfg.Between_Min or 0.10, ReactionDelayCfg.Between_Max or 0.30))
+	end
+	bWasCasting = bCasting
+
+	return now >= fReactionReadyAt
+end
+
 function ItemUsageThink()
+	if not IsReactionReady() then return end
 	if bot:IsInvulnerable() or not bot:IsHero() or not bot:IsAlive() or not string.find(botName, "hero") or bot:IsIllusion() then return end
 
 	if not Fu.IsNoItemIllution(bot) then ItemUsageComplement() end

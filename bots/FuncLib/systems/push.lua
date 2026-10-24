@@ -340,7 +340,7 @@ function ____exports.GetPushDesireHelper(bot, lane)
         end
     end
     if _isAllBotsGame == nil then
-        _isAllBotsGame = not Fu.Utils.IsHumanPlayerInTeam(GetTeam()) and not Fu.Utils.IsHumanPlayerInTeam(GetOpposingTeam())
+        _isAllBotsGame = not Fu.Utils.IsHumanPlayerInTeam(GetTeam())
     end
     if _isAllBotsGame and not gameState.isLaningPhase and not gameState.isEarlyGame then
         if alliesPushing >= 2 and lane == _pushCacheBestLane then
