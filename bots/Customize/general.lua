@@ -1,9 +1,9 @@
 --[[
-This is a place for you to customize the Open Hyper AI bots.
+This is a place for you to customize the Smart Bots (HATS), based on Open Hyper AI.
 
 1. When modiftying this file, be VERY careful to the spelling, punctuation and variable names - it's very easy to cause 
    syntax errors and mess up the entire logic for all bots, and could be hard for you to debug.
-2. In the case you saw the bots having some random names or picks (heroes not what you have set or without "OHA" name suffix), 
+2. In the case you saw the bots having some random names or picks (heroes not what you have set or without "HATS" name suffix), 
    that means you had made some mistakes/errors while modifying this file. 
 3. In any case this file got messed up and caused the bots to malfunction, you can try to restore the file. Either you have a 
    copy to replace, or resubscribe the script, or download from github.
@@ -12,8 +12,8 @@ This is a place for you to customize the Open Hyper AI bots.
    and then modify the settings in <Steam\steamapps\common\dota 2 beta\game\dota\scripts\vscripts\game\Customize> directory.
 5. Note there is a list of known to-be-improved (aka weak) heroes, check out [Appendix - 2] on the bottom of this file.
 
-- Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3246316298
-- Github: https://github.com/forest0xia/dota2bot-OpenHyperAI
+- Github: https://github.com/lyurf/dota2-smart-bots
+- Original project (Open Hyper AI): https://github.com/forest0xia/dota2bot-OpenHyperAI
 --]]
 
 
@@ -95,7 +95,7 @@ Customize.Dire_Names = {
     'Random',
 }
 
--- Set to true to show team name tags in bot names (e.g. "LQD.miCKe.OHA"), or false to hide them (e.g. "miCKe.OHA").
+-- Set to true to show team name tags in bot names (e.g. "LQD.miCKe.HATS"), or false to hide them (e.g. "miCKe.HATS").
 Customize.Show_Team_Names = false
 
 -- Set custom team name tags for each side. Leave as '' to use a random pro team name.

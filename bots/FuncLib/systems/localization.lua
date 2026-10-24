@@ -8,7 +8,7 @@ local LanguageCode = 'en'
 local Localization = {
     en = {
         welcome_msgs = {
-            "Welcome to Open Hyper AI (OHA): ",
+            "Welcome to Smart Bots (HATS), based on Open Hyper AI: ",
             "You can select the heroes for bots to pick, e.g. 10 same heroes or your dream teams, or change their names. Just customize bots in the Customize/general file.",
             "If you feel bots are weak, try enabling the enhanced Fretbots mode to make the game a lot more challenging. Check Workshop page for details.",
             "You can type `!pos X` to swap position with a bot. For example, type: `!pos 2` to go mid lane. Type `!3pos 5` to ask the 3rd bot on the team to play position 5.",
@@ -148,7 +148,7 @@ local Localization = {
     },
     zh = {
         welcome_msgs = {
-            "欢迎来到 Open Hyper AI (OHA)：",
+            "欢迎来到 Smart Bots (HATS)（基于 Open Hyper AI）：",
             "你可以自定义机器人要选择的英雄，例如 10 个相同的英雄或别的梦幻队伍，或者更改他们的名字。只需修改 Customize/general 文件",
             "如果你觉得机器人太弱，可以尝试启用增强的 Fretbots 模式，让游戏更加具有挑战性。详情请查看创意工坊页面",
             "你可以输入 `!pos X` 与机器人交换位置。例如，输入：`!pos 2` 来走中路。输入 `!3pos 5` 让队伍中的第3个机器人玩5号位。",
@@ -295,7 +295,7 @@ local Localization = {
     },
     ru = {
         welcome_msgs = {
-            "Добро пожаловать в Open Hyper AI (OHA):",
+            "Добро пожаловать в Smart Bots (HATS) на основе Open Hyper AI:",
             "Вы можете выбрать героев для ботов, например, 10 одинаковых героев или свою команду мечты, или изменить их имена. Просто измените файл Customize/general.",
             "Если вы считаете, что боты слишком слабые, попробуйте включить режим улучшенных Fretbots, чтобы игра стала более сложной. Подробности смотрите на странице Workshop.",
             "Вы можете ввести `!pos X`, чтобы поменяться позицией с ботом. Например, введите: `!pos 2`, чтобы пойти на центральную линию. Введите `!3pos 5`, чтобы попросить 3-го бота в команде играть на позиции 5.",
@@ -422,7 +422,7 @@ local Localization = {
     },
     ja = {
         welcome_msgs = {
-            "Open Hyper AI (OHA)へようこそ：",
+            "Smart Bots (HATS)（Open Hyper AI ベース）へようこそ：",
             "ボットが選ぶヒーローを選択したり（例: 10人の同じヒーローや夢のチーム）、名前を変更したりできます。Customize/general ファイルを編集するだけです。",
             "もしボットが弱いと感じる場合は、強化された Fretbots モードを有効にして、より挑戦的なゲームをお楽しみください。詳細はワークショップページをご覧ください。",
             "`!pos X` を入力してボットとポジションを交換できます。例えば、`!pos 2` を入力するとミッドレーンに行きます。`!3pos 5` を入力すると、チームの3番目のボットにポジション5をプレイさせます。",

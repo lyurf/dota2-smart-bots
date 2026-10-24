@@ -4,7 +4,7 @@ local Customize = require( GetScriptDirectory()..'/FuncLib/systems/custom_loader
 
 local Dota2Teams = { }
 
-Dota2Teams.defaultPostfix = 'OHA' -- Open Hyper AI.
+Dota2Teams.defaultPostfix = 'HATS' -- Smart Bots (HATS), based on Open Hyper AI.
 Dota2Teams.maxTeamSize = 12 -- e.g. for 12 v 12
 
 -- List should have a least 4 teams for better performance.

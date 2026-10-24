@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **dota2bot-OpenHyperAI** project -- Lua bot scripts for Dota 2 that run in custom lobbies. Currently supports Patch 7.41/7.41a with 127 heroes.
 
+This repository is **Smart Bots (HATS)**, a fork of Open Hyper AI (based on upstream branch `pr-140-refactor`). Bot name suffix is `.HATS`. Goal: strong, strategic bots **without unfair bonuses**; FretBots stays optional with difficulty voting. The maintainer is a non-programmer who speaks Russian and tests in-game.
+
+Commit messages: do NOT add a `Claude-Session:` link (maintainer's request). A `Co-Authored-By` line is fine.
+
 ## Key Documentation
 
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** -- Complete codebase architecture, file map, naming conventions, all systems explained

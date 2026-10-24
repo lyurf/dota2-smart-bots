@@ -10,7 +10,7 @@ if GetScriptDirectory == nil then GetScriptDirectory = function() return "bots" 
 -- Version information
 local Version = require 'bots.FuncLib.systems.version'
 -- Print version to console
-log('Open Hyper AI (OHA). Starting Fretbots mode: %s', Version.number)
+log('Smart Bots (HATS), based on Open Hyper AI. Starting Fretbots mode: %s', Version.number)
 -- Dependencies
 -- global debug flag
 require 'bots.FretBots.Debug'
@@ -179,7 +179,7 @@ if not Flags.isFretBotsInitialized then
 	local teamNames = require 'bots.FuncLib.data.team_names'
 	if teamNames.maxTeamSize ~= 12 then return end
 	-- Welcome Message
-	Utilities:Print('Welcome to Open Hyper AI (OHA)! FretBots enabled: ' .. Version.number, MSG_GOOD, MATCH_READY)
+	Utilities:Print('Welcome to Smart Bots (HATS)! FretBots enabled: ' .. Version.number, MSG_GOOD, MATCH_READY)
 	-- Register the listener that will run Initialize() once the game starts
 	Utilities:RegsiterGameStateListener(FretBots, 'Initialize', DOTA_GAMERULES_STATE_PRE_GAME )
 	Flags.isFretBotsInitialized = true
