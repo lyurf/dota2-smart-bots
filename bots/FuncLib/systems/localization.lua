@@ -10,7 +10,6 @@ local Localization = {
         welcome_msgs = {
             "Welcome to Smart Bots (HATS), based on Open Hyper AI: ",
             "You can select the heroes for bots to pick, e.g. 10 same heroes or your dream teams, or change their names. Just customize bots in the Customize/general file.",
-            "Bots play fair: no bonus gold, experience or stats. They win only by playing well.",
             "You can type `!pos X` to swap position with a bot. For example, type: `!pos 2` to go mid lane. Type `!3pos 5` to ask the 3rd bot on the team to play position 5.",
             -- "Note, after the update of 7.38, the `!pos X` command is disabled temporarily for Dire team",
             "You can type `!sp zh` for ally bots to 说中文, or `!sp en` for English, `!sp ru` for русский, `!sp ja` for 日本語. Not 100% translated, just be patient.",
@@ -150,7 +149,6 @@ local Localization = {
         welcome_msgs = {
             "欢迎来到 Smart Bots (HATS)（基于 Open Hyper AI）：",
             "你可以自定义机器人要选择的英雄，例如 10 个相同的英雄或别的梦幻队伍，或者更改他们的名字。只需修改 Customize/general 文件",
-            "机器人公平对战：没有额外的金钱、经验或属性加成，只靠实力取胜。",
             "你可以输入 `!pos X` 与机器人交换位置。例如，输入：`!pos 2` 来走中路。输入 `!3pos 5` 让队伍中的第3个机器人玩5号位。",
             -- "注意：在 7.38 更新后，夜宴队的 !pos X 命令已暂时被禁用",
             "你可以输入 `!sp zh` 让盟友机器人说中文，或者输入 `!sp en` 说英语，`!sp ru` 说俄语，`!sp ja` 说日语。并非100%完成翻译，请耐心等待。",
@@ -297,7 +295,6 @@ local Localization = {
         welcome_msgs = {
             "Добро пожаловать в Smart Bots (HATS) на основе Open Hyper AI:",
             "Вы можете выбрать героев для ботов, например, 10 одинаковых героев или свою команду мечты, или изменить их имена. Просто измените файл Customize/general.",
-            "Боты играют честно: никаких бонусов к золоту, опыту и характеристикам. Они побеждают только за счёт игры.",
             "Вы можете ввести `!pos X`, чтобы поменяться позицией с ботом. Например, введите: `!pos 2`, чтобы пойти на центральную линию. Введите `!3pos 5`, чтобы попросить 3-го бота в команде играть на позиции 5.",
             -- "Обратите внимание: после обновления до версии 7.38 команда !pos X временно отключена для команды Dire.",
             "Вы можете ввести `!sp zh`, чтобы союзные боты говорили на китайском, или `!sp en` для английского, `!sp ru` для русского, `!sp ja` для японского. Перевод не завершён на 100%, проявите терпение.",
@@ -424,7 +421,6 @@ local Localization = {
         welcome_msgs = {
             "Smart Bots (HATS)（Open Hyper AI ベース）へようこそ：",
             "ボットが選ぶヒーローを選択したり（例: 10人の同じヒーローや夢のチーム）、名前を変更したりできます。Customize/general ファイルを編集するだけです。",
-            "ボットは公平にプレイします：ゴールド、経験値、ステータスのボーナスは一切ありません。実力だけで勝負します。",
             "`!pos X` を入力してボットとポジションを交換できます。例えば、`!pos 2` を入力するとミッドレーンに行きます。`!3pos 5` を入力すると、チームの3番目のボットにポジション5をプレイさせます。",
             -- "注意：7.38 のアップデート後、Dire チーム向けの !pos X コマンドは一時的に無効化されています",
             "`!sp zh` を入力すると味方ボットが中国語を話し、`!sp en` で英語、`!sp ru` でロシア語、`!sp ja` で日本語を話します。翻訳は100％完成していないので、少しお待ちください。",

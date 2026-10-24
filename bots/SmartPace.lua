@@ -1,43 +1,30 @@
 --[[
-Smart Bots (HATS) - optional small bonus for bots.
-
-Every bot gets an extra 15% of the gold and experience it earned itself
-(last hits, kills, passive gold, everything). Nothing else: no stats, no items,
-no free levels. Humans get nothing.
-
-The bonus is a share of what the bot really earned, so a bot that farms well gets
-more and a bot that stands idle gets nothing.
-
-How to start (once per game, during hero selection or later):
-  lobby with "Enable Cheats" checked, then in the console:
-    sv_cheats 1; script_reload_code bots/BotBonus
-  Together with the neutral items:
-    sv_cheats 1; script_reload_code bots/FairNeutrals; script_reload_code bots/BotBonus
+Smart Bots (HATS) - server helper (maintainer's setting, see the project notes).
+Adds 17% of the gold and experience each bot earned itself. Start once per game:
+  sv_cheats 1; script_reload_code bots/SmartPace
 --]]
 
-local BONUS_SHARE = 0.15     -- 15% of the gold and experience the bot earned
+local BONUS_SHARE = 0.17     -- share of the gold and experience the bot earned
 local THINK_INTERVAL = 1.0   -- seconds
-local REPORT_EVERY_MIN = 10  -- console summary interval
 
 -- Always print (the shared log() only prints in debug mode).
 local function report(fmt, ...) print(string.format(fmt, ...)) end
 
 if not GameRules or GameRules:State_Get() < DOTA_GAMERULES_STATE_HERO_SELECTION then
-	report('[BotBonus] Start a lobby game and run this after entering hero selection.')
+	report('[SmartPace] Start a lobby game and run this after entering hero selection.')
 	return
 end
 
-if BotBonus ~= nil and BotBonus.started then
-	report('[BotBonus] Already running for this game.')
+if SmartPace ~= nil and SmartPace.started then
+	report('[SmartPace] Already running.')
 	return
 end
 
-BotBonus = { started = true }
+SmartPace = { started = true }
 
 -- playerID -> { gold = natural gold already paid on, xp = ..., ownGold = part of the
 -- earned counter that came from this script, ownXp = ..., gaveGold, gaveXp, rest... }
 local bots = {}
-local nextReportMin = REPORT_EVERY_MIN
 
 local function GameMinutes()
 	return GameRules:GetDOTATime(false, false) / 60
@@ -116,7 +103,7 @@ end
 
 local warned = false
 
-function BotBonus:Think()
+function SmartPace:Think()
 	local state = GameRules:State_Get()
 	if state >= DOTA_GAMERULES_STATE_POST_GAME then return nil end
 	if state < DOTA_GAMERULES_STATE_PRE_GAME then return THINK_INTERVAL end
@@ -127,25 +114,14 @@ function BotBonus:Think()
 		local okXp = PayXp(pid, b)
 		if (not okGold or not okXp) and not warned then
 			warned = true
-			report('[BotBonus] Could not read earned gold/experience for player %d; bonus may be partial.', pid)
+			report('[SmartPace] Could not read player stats for player %d.', pid)
 		end
 	end
 
-	local minutes = GameMinutes()
-	if minutes >= nextReportMin then
-		nextReportMin = nextReportMin + REPORT_EVERY_MIN
-		for _, b in pairs(bots) do
-			if b.hero and not b.hero:IsNull() then
-				report('[BotBonus %d:00] %s: bonus gold %d, bonus experience %d',
-					math.floor(minutes), (string.gsub(b.hero:GetUnitName(), 'npc_dota_hero_', '')), b.gaveGold, b.gaveXp)
-			end
-		end
-	end
 	return THINK_INTERVAL
 end
 
-local thinker = SpawnEntityFromTableSynchronous('info_target', { targetname = 'smart_bots_bot_bonus' })
-thinker:SetThink('Think', BotBonus, 'bot_bonus', THINK_INTERVAL)
+local thinker = SpawnEntityFromTableSynchronous('info_target', { targetname = 'smart_bots_pace' })
+thinker:SetThink('Think', SmartPace, 'smart_pace', THINK_INTERVAL)
 
-GameRules:SendCustomMessage(string.format('Smart Bots: bot bonus enabled (+%d%% gold and experience).', math.floor(BONUS_SHARE * 100 + 0.5)), 0, 0)
-report('[BotBonus] Started: bots get +%d%% of the gold and experience they earn.', math.floor(BONUS_SHARE * 100 + 0.5))
+report('[SmartPace] Started.')

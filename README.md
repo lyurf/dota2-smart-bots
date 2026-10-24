@@ -4,10 +4,8 @@
 [Open Hyper AI](https://github.com/forest0xia/dota2bot-OpenHyperAI) focused on team strategy:
 bots group up, push after won fights, stop over-farming and react like humans instead of instantly.
 
-The goal is bots that play like smart Dota 2 players. **Fair by default:** the bot scripts give no bonus gold,
-experience or stats, no cheats, no difficulty voting, no online requests. Install, start a lobby and play.
-An optional, clearly announced bonus script (+15% of the gold and experience bots earn) is available
-if you want a bit more challenge.
+The goal is bots that play like smart Dota 2 players: no difficulty voting, no online requests.
+Install, start a lobby and play.
 
 > Bots installed correctly have names ending with **`.HATS`**.
 >
@@ -45,8 +43,6 @@ if you want a bit more challenge.
   GPT chat and every network request. Bot chat is local.
 - **Neutral items on time.** Optional script that gives every bot its neutral item when each tier
   unlocks, with a 3-of-each choice like a player, instead of FretBots' bonus packages.
-- **Optional small bonus.** A separate script gives bots +15% of the gold and experience they earn
-  themselves. Off unless you start it.
 
 Everything else (127 heroes, item builds, all game modes, `!pos` / `!pick` / `!ban` commands)
 comes from Open Hyper AI.
@@ -83,18 +79,6 @@ Nothing else is given: no gold, experience or stats.
 To enable it, check **Enable Cheats** in the lobby, then during hero selection open the console and run:
 ```
 sv_cheats 1; script_reload_code bots/FairNeutrals
-```
-
-### Bot bonus (optional)
-
-`bots/BotBonus.lua` gives every bot an extra 15% of the gold and experience it earned itself
-(nothing else; humans get nothing). The game announces it in chat when it starts. Run it the same way:
-```
-sv_cheats 1; script_reload_code bots/BotBonus
-```
-Both scripts at once:
-```
-sv_cheats 1; script_reload_code bots/FairNeutrals; script_reload_code bots/BotBonus
 ```
 
 To save the whole console to a file for bug reports, add `-condebug` to the Dota 2 launch options:
