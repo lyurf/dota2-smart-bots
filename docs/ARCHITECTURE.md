@@ -6,6 +6,10 @@
 > `FuncLib/data/matchups_data.lua` (was `FretBots/matchups_data.lua`). Sections about FretBots/Buff are historical.
 > Neutral items for bots now come from the optional fair script `bots/FairNeutrals.lua` (pool: `FuncLib/data/neutral_items.lua`, moved
 > from `FretBots/SettingsNeutralItemTable.lua`). When Valve changes the neutral pool, update that one file.
+> `matchups_data[hero][enemy]` is **hero's** advantage over enemy (win rate − 50). Use `GetAdvantage(hero, enemy)`,
+> which also falls back to the reverse entry; All Pick (`hero_selection.lua`) and Captains Mode
+> (`captain_mode.ts`) both score picks with it. Console test reports (`[DEATH]`, `[GAME mm:00]`) live in
+> `FuncLib/systems/match_report.lua`, called from `mode_retreat_generic.lua` GetDesire.
 
 
 This document is the single source of truth for understanding, maintaining, and updating the dota2bot-OpenHyperAI codebase. It is designed so that a developer (or AI assistant) can quickly make targeted updates without re-scanning the entire repository.

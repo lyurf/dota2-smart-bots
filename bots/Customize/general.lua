@@ -103,7 +103,8 @@ Customize.Dire_Team_Name = ''
 
 -- Set how frequently you want the bots to push. 
 -- 1 is default, bot may choose to farm more in game. 2 is balanced for push vs farm. 3 is almost no farm, all push.
-Customize.Push_Frequency = 3
+-- Smart Bots: the carry and mid always keep most of their farm, whatever this is set to.
+Customize.Push_Frequency = 2
 
 -- Make bots think less, 0: fully think through, 1 to 10: think less and less frequently.
 -- Bots can become slow or dumb in reaction and decision making if you set this value to a higher number.

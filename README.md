@@ -26,7 +26,14 @@ stats from the scripts, no cheats, no difficulty voting, no online requests. Ins
 - **Less over-farming.** Bots leave the jungle and push when 2 or fewer enemies are alive.
 - **Human-like reaction time.** Configurable delay before casting spells and items when an enemy
   appears, and between casts (`Reaction_Delay` in `Customize/general.lua`).
-- **Smarter defaults.** Push-oriented play (`Push_Frequency = 3`) and full thinking (`ThinkLess = 0`).
+- **Smarter drafting.** Fixed the inverted counter-pick math (bots used to pick heroes the enemy
+  counters). In Captains Mode a bot captain bans and picks by role fit, counters and synergy
+  instead of random heroes.
+- **Cores farm.** The carry and mid keep farming between fights whatever `Push_Frequency` is set to;
+  everyone farms less and takes objectives when the team is 2+ heroes up.
+- **Smarter defaults.** Balanced push/farm (`Push_Frequency = 2`) and full thinking (`ThinkLess = 0`).
+- **Console reports for testing.** Lane stats at 5 and 10 min, game stats with time spent per mode
+  at 15–50 min, and a line for every bot death (mode, HP before, enemies and allies near).
 - **One settings file.** All modes read settings through the same loader, so a single
   `vscripts/game/Customize/general.lua` overrides everything.
 - **No bonus modes.** FretBots and Buff mode (bonus gold/XP/stats, voting) are removed, together with

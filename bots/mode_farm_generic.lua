@@ -159,17 +159,31 @@ function GetDesire()
 	-- end
 
 	-- Push_Frequency scaling: dampen farm desire when user wants more pushing.
-	-- 1 = default (no change) = max 0.6, 2 = farm * 0.65 = max 0.39, 3 = farm * 0.3 = max 0.18
+	-- 1 = no change (max 0.6), 2 = farm * 0.65, 3 = farm * 0.3.
+	-- Smart Bots: the carry and mid always keep most of their farm (a carry that never
+	-- farms loses every late fight), the offlaner keeps a bit more than supports.
+	-- When the team is clearly ahead in numbers, everyone farms less and takes objectives.
 	local pushFreq = Customize.Push_Frequency or 1
 	if (nH > 0 or nH2 > 0) and pushFreq <= 1 then
 		-- set pushFreq to 2 for team with human.
 		pushFreq = 2
 	end
+	local farmScale = 1
 	if pushFreq >= 3 then
-		res = res * 0.3
+		farmScale = 0.3
 	elseif pushFreq >= 2 then
-		res = res * 0.65
+		farmScale = 0.65
 	end
+	local nFarmPos = Fu.GetPosition(bot)
+	if nFarmPos <= 2 then
+		farmScale = math.max(farmScale, 0.9)
+	elseif nFarmPos == 3 then
+		farmScale = math.max(farmScale, 0.7)
+	end
+	if Fu.GetNumOfAliveHeroes(false) >= Fu.GetNumOfAliveHeroes(true) + 2 then
+		farmScale = farmScale * 0.5
+	end
+	res = res * farmScale
 
 	-- Farm commitment: once farming, maintain desire floor for 3 seconds
 	-- Prevents oscillation when walking between lane front (enemies visible) and jungle

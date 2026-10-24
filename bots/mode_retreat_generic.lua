@@ -1,6 +1,7 @@
 local X = {}
 
 local Fu = require(GetScriptDirectory()..'/FuncLib/func_utils')
+local MatchReport = require(GetScriptDirectory()..'/FuncLib/systems/match_report')
 
 local bot = GetBot()
 
@@ -107,6 +108,8 @@ end
 -- GetDesire
 --------------------------------------------------------------------
 function GetDesire()
+    -- Smart Bots: [DEATH] and [GAME mm:00] console reports (runs while dead too)
+    MatchReport.Update(bot, Fu.GetPosition(bot))
     if ShouldSkipBotThink(GetBot()) then return 0 end
     return GetDesireHelper()
 end

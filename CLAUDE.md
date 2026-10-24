@@ -130,6 +130,7 @@ These Lua files are compiled from TypeScript -- edit the TS source, not the Lua:
 - `bots/FuncLib/systems/utils.lua` ← `typescript/bots/FuncLib/systems/utils.ts`
 - `bots/FuncLib/systems/cache.lua` ← `typescript/bots/FuncLib/systems/cache.ts`
 - `bots/ts_libs/dota/interfaces.lua` ← `typescript/bots/ts_libs/dota/interfaces.ts`
+- `bots/FuncLib/hero/captain_mode.lua` ← `typescript/bots/FuncLib/hero/captain_mode.ts` (and the rest of the table in ARCHITECTURE.md Section 13)
 
 The `Fu` module (`FuncLib/func_utils.lua`) is pure Lua and uses `typescript/bots/FuncLib/func_utils.d.ts` for type declarations. When adding new `Fu.*` functions, update the `.d.ts` file so TS files can call them.
 
