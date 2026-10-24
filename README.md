@@ -46,9 +46,6 @@ comes from Open Hyper AI.
    `...\steamapps\common\dota 2 beta\game\dota\scripts\vscripts\`.
 4. In Dota 2 create a **Custom Lobby**: Server Location **Local Host**, bot script **Local Dev Script**,
    bot difficulty **Unfair**.
-   Recommended for a real challenge. Note that this is Valve's own setting: Unfair enemy bots get
-   +25% gold and experience and Valve's built-in parts of the bot AI play sharper. For a fully fair
-   game choose **Hard** instead. Smart Bots scripts do not read the difficulty setting themselves.
 
 ### Your settings
 
