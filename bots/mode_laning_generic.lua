@@ -102,8 +102,12 @@ function GetDesireRaw()
 			bot['_laneReport'..reportMin] = true
 			local okLH, lh = pcall(function() return bot:GetLastHits() end)
 			local okDN, dn = pcall(function() return bot:GetDenies() end)
-			print(string.format('[LANE %d:00] %s pos %d: LH %s / DN %s, level %d, nw %d', reportMin, botName, Fu.GetPosition(bot),
-				okLH and tostring(lh) or '?', okDN and tostring(dn) or '?', bot:GetLevel(), bot:GetNetWorth()))
+			local nObs = 0
+			for _, w in pairs(GetUnitList(UNIT_LIST_ALLIED_WARDS) or {}) do
+				if w ~= nil and w:GetUnitName() == 'npc_dota_observer_wards' then nObs = nObs + 1 end
+			end
+			print(string.format('[LANE %d:00] %s pos %d: LH %s / DN %s, level %d, nw %d, team observers on map %d', reportMin, botName, Fu.GetPosition(bot),
+				okLH and tostring(lh) or '?', okDN and tostring(dn) or '?', bot:GetLevel(), bot:GetNetWorth(), nObs))
 		end
 	end
 
@@ -297,6 +301,7 @@ function GetCreepToPrepare(hCreepList, nEnemyTowers)
 end
 
 local fNextMovementTime = 0
+local fNextHarassTime = 0
 
 -- Drop tower aggro by attacking a nearby ally creep
 local function DropTowerAggro(nAllyCreepList)
@@ -374,6 +379,19 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 			return
 		end
 
+		-- Smart Bots: creep aggro control. Hitting a hero pulls nearby enemy creeps onto us;
+		-- when 2+ creeps are on us, step back behind our own wave so they lose interest.
+		local creepsOnMe = 0
+		for _, c in pairs(nEnemyCreeps) do
+			if Fu.IsValid(c) and c:GetAttackTarget() == bot then
+				creepsOnMe = creepsOnMe + 1
+			end
+		end
+		if creepsOnMe >= 2 then
+			bot:Action_MoveToLocation(Fu.AdjustLocationWithOffsetTowardsFountain(bot:GetLocation(), 350))
+			return
+		end
+
 		-- Smart Bots: get ready for the next last hit - stand in attack range of the enemy creep
 		-- that is about to die, instead of walking around until it is already killable.
 		if Fu.IsCore(bot) or not Fu.IsThereCoreNearby(1300) then
@@ -404,39 +422,30 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 			end
 		end
 
-		-- Support harass: only when few enemy creeps (avoid drawing aggro)
-		local nNearbyEnemyCreeps = bot:GetNearbyLaneCreeps(600, true)
-		if #nNearbyEnemyCreeps <= 1 and not Fu.IsCore(bot) and Fu.GetHP(bot) > 0.5 then
-			for _, enemy in pairs(nInRangeEnemy) do
-				if Fu.IsValidHero(enemy)
-				and Fu.CanBeAttacked(enemy)
-				and not Fu.IsSuspiciousIllusion(enemy)
-				and Fu.IsInRange(bot, enemy, botAttackRange + 150)
-				then
-					bot:Action_AttackUnit(enemy, true)
-					return
+		-- Smart Bots: lane harass. Supports trade right-clicks actively (they have no last hits to
+		-- take), cores harass when healthy. One hit at a time with a short pause, so the bot does
+		-- not stand in the creep wave and keep the aggro. Prefer the lowest-HP enemy in range.
+		if DotaTime() >= fNextHarassTime then
+			local bIsCore = Fu.IsCore(bot)
+			local fMinHP = bIsCore and 0.6 or 0.45
+			local nExtraRange = bIsCore and 50 or 200
+			if Fu.GetHP(bot) > fMinHP then
+				local target, targetHP = nil, math.huge
+				for _, enemy in pairs(nInRangeEnemy) do
+					if Fu.IsValidHero(enemy)
+					and Fu.CanBeAttacked(enemy)
+					and not Fu.IsSuspiciousIllusion(enemy)
+					and Fu.IsInRange(bot, enemy, botAttackRange + nExtraRange)
+					and not (Fu.IsValidBuilding(nEnemyTowers[1]) and GetUnitToUnitDistance(enemy, nEnemyTowers[1]) < 800)
+					then
+						local hp = enemy:GetHealth()
+						if hp < targetHP then target, targetHP = enemy, hp end
+					end
 				end
-			end
-		end
-
-		-- Core harass: when HP is good and not too many creeps targeting us
-		if Fu.IsCore(bot) and Fu.GetHP(bot) > 0.6 then
-			for _, enemy in pairs(nInRangeEnemy) do
-				if Fu.IsValidHero(enemy)
-				and Fu.CanBeAttacked(enemy)
-				and not Fu.IsSuspiciousIllusion(enemy)
-				and Fu.IsInRange(bot, enemy, botAttackRange + 50)
-				then
-					local creepsOnMe = 0
-					for _, c in pairs(nEnemyCreeps) do
-						if Fu.IsValid(c) and c:GetAttackTarget() == bot then
-							creepsOnMe = creepsOnMe + 1
-						end
-					end
-					if creepsOnMe <= 2 then
-						bot:Action_AttackUnit(enemy, true)
-						return
-					end
+				if target ~= nil then
+					bot:Action_AttackUnit(target, true)
+					fNextHarassTime = DotaTime() + (bIsCore and RandomFloat(2.0, 3.5) or RandomFloat(1.2, 2.2))
+					return
 				end
 			end
 		end
@@ -445,6 +454,11 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 		local fLaneFrontAmount = GetLaneFrontAmount(GetTeam(), botAssignedLane, false)
 		local fLaneFrontAmount_enemy = GetLaneFrontAmount(GetOpposingTeam(), botAssignedLane, false)
 		local nLongestAttackRange = math.max(botAttackRange, 250, nFurthestEnemyAttackRange)
+		-- Smart Bots: supports stand close enough to threaten the enemy laners instead of hiding
+		-- behind the wave (they keep their own attack range, not the enemy's).
+		if not Fu.IsCore(bot) and Fu.GetHP(bot) > 0.5 then
+			nLongestAttackRange = math.max(botAttackRange * 0.8, 200)
+		end
 
 		local target_loc = GetLaneFrontLocation(GetTeam(), botAssignedLane, -nLongestAttackRange)
 		if fLaneFrontAmount_enemy < fLaneFrontAmount then

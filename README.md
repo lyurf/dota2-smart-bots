@@ -18,7 +18,9 @@ stats from the scripts, no cheats, no difficulty voting, no online requests. Ins
   in all-bot games.
 - **Smarter laning.** Every hero uses Smart Bots laning instead of Valve's built-in one: the bot stands
   ready next to an enemy creep that is about to die, denies, and supports leave last hits to their core
-  (in the original, supports took the core's farm). `Smart_Laning = false` switches back.
+  (in the original, supports took the core's farm). Supports stand forward and trade hits with the
+  enemy laners, everyone steps back when creeps pull aggro. `Smart_Laning = false` switches back.
+- **Vision.** Supports actually buy observer wards (pos 5 every ward in stock, pos 4 one when 2+ are in stock).
 - **Less over-farming.** Bots leave the jungle and push when 2 or fewer enemies are alive.
 - **Human-like reaction time.** Configurable delay before casting spells and items when an enemy
   appears, and between casts (`Reaction_Delay` in `Customize/general.lua`).

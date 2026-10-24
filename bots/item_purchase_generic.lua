@@ -855,14 +855,18 @@ function ItemPurchaseThink()
 		end
 	end
 
-	if Fu.GetPosition(bot) == 5 and botWorth < 25000
+	-- Smart Bots: keep vision up. Pos 5 buys every observer in stock (the old rule needed 2+ in
+	-- stock and 2 free slots, so it rarely bought any); pos 4 also buys one when 2+ are in stock.
+	local nPos = Fu.GetPosition(bot)
+	if (nPos == 5 or nPos == 4) and botWorth < 25000
 	then
 		local wardType = 'item_ward_observer'
+		local nCharges = Item.GetItemCharges(bot, wardType)
 
-		if GetItemStockCount(wardType) > 1
+		if GetItemStockCount(wardType) >= (nPos == 5 and 1 or 2)
 		and botGold >= GetItemCost(wardType)
-		and Item.GetEmptyInventoryAmount(bot) >= 2
-		and Item.GetItemCharges(bot, wardType) < 2
+		and (nCharges > 0 or Item.GetEmptyInventoryAmount(bot) >= 1)
+		and nCharges < (nPos == 5 and 2 or 1)
 		and botCourierValue == 0
 		then
 			bot:ActionImmediate_PurchaseItem(wardType)
