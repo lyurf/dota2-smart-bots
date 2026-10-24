@@ -10,7 +10,7 @@ Fu.Item = require( GetScriptDirectory()..'/FuncLib/systems/item' )        -- Ite
 Fu.Buff = require( GetScriptDirectory()..'/FuncLib/data/buff' )           -- Buff/debuff definitions and modifier lookups
 Fu.Role = require( GetScriptDirectory()..'/FuncLib/systems/role' )        -- Position/role assignment (pos 1-5), PvN mode checks
 Fu.Skill = require( GetScriptDirectory()..'/FuncLib/systems/skill' )      -- Ability build orders, talent trees, skill list helpers
-Fu.Chat = require( GetScriptDirectory()..'/FuncLib/systems/chat' )        -- Chat messages, trash talk, GPT responses
+Fu.Chat = require( GetScriptDirectory()..'/FuncLib/systems/chat' )        -- Chat messages and trash talk (local only)
 Fu.Utils = require( GetScriptDirectory()..'/FuncLib/systems/utils' )      -- General utilities: distance, caching, TP helpers, game state
 Fu.Customize = require(GetScriptDirectory()..'/FuncLib/systems/custom_loader') -- Loads user settings from Customize/general.lua
 

@@ -22,8 +22,6 @@
         "dev": "npm run tstl -- --watch",
         "prettier": "prettier ./bots ./typescript --write",
         "update-version": "node ./typescript/post-process/update-version.js",
-        "update-ne": "npm run build:node && node ./dist/post-process/static-neutrals-matchup.js",
-        "neutrals": "npm run build:node && node ./dist/post-process/neutrals.js",
         "matchups": "npm run build:node && node ./dist/post-process/matchups.js",
         "obfuscate": "npx ts-node typescript/post-process/obfuscator/obfuscate.ts",
         "deobfuscate": "npx ts-node typescript/post-process/obfuscator/deobfuscate.ts",

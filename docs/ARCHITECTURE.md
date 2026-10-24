@@ -1,5 +1,11 @@
 # Dota 2 Bot Architecture Guide
 
+> **Smart Bots (HATS) note:** this document describes upstream Open Hyper AI. In this fork the `FretBots/`, `Buff/`
+> and `Install-to-vscript/` folders, the HTTP layer (`ts_libs/utils/http_utils`) and GPT chat were removed.
+> Data the core still needs moved to `FuncLib/data/hero_names_locale.lua` (was `FretBots/HeroNames.lua`) and
+> `FuncLib/data/matchups_data.lua` (was `FretBots/matchups_data.lua`). Sections about FretBots/Buff are historical.
+
+
 This document is the single source of truth for understanding, maintaining, and updating the dota2bot-OpenHyperAI codebase. It is designed so that a developer (or AI assistant) can quickly make targeted updates without re-scanning the entire repository.
 
 Last verified against: **Patch 7.41a** (March 2026)

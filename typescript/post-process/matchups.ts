@@ -22,7 +22,7 @@ const HEADERS = {
     "Content-Type": "application/json",
 };
 const DELAY = 400; // ms between API calls — avoid throttling
-const OUT_PATH = path.resolve(__dirname, "../../bots/FretBots/matchups_data.lua");
+const OUT_PATH = path.resolve(__dirname, "../../bots/FuncLib/data/matchups_data.lua");
 
 function sleep(ms: number): Promise<void> {
     return new Promise(r => setTimeout(r, ms));

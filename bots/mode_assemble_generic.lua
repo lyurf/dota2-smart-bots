@@ -3,7 +3,7 @@ if bot == nil or bot:IsInvulnerable() or not bot:IsHero() or not string.find(bot
 
 local Fu = require( GetScriptDirectory()..'/FuncLib/func_utils' )
 local Localization = require( GetScriptDirectory()..'/FuncLib/systems/localization' )
-local HeroNames = require( GetScriptDirectory()..'/FretBots/HeroNames' )
+local HeroNames = require( GetScriptDirectory()..'/FuncLib/data/hero_names_locale' )
 
 local function GetLocalizedHeroName(unit)
 	if unit == nil then return '' end

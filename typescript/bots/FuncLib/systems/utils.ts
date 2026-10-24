@@ -14,7 +14,6 @@
 require("bots/ts_libs/utils/json");
 import { Ability, Barracks, BotActionType, BotMode, Item, Lane, Ping, Team, Tower, Unit, UnitType, Vector, BotScriptEnums } from "bots/ts_libs/dota";
 import { GameState, AvoidanceZone } from "bots/ts_libs/bots";
-import { Request } from "bots/ts_libs/utils/http_utils/http_req";
 import { add, dot, length2D, length3D, multiply, sub } from "bots/ts_libs/utils/native-operators";
 import { HeroName } from "bots/ts_libs/dota/heroes";
 import * as CK from "bots/FuncLib/systems/cache_keys";
@@ -886,19 +885,6 @@ export function DetermineEnemyBotRole(bot: Unit): number {
     }
 
     return estimatedRole.role;
-}
-
-// TODO: Just trying. Does not work.
-export function QueryCounters(heroId: number) {
-    log("heroId=%s", heroId);
-    Request.RawGetRequest(`https://api.opendota.com/api/heroes/${heroId}/matchups`, function (res) {
-        PrintTable(res);
-    });
-}
-export function InitiStats() {
-    Request.GetUUID(function (uuid) {
-        log("uuid=%s", uuid);
-    });
 }
 
 export function GetLoneDruid(bot: Unit): any {

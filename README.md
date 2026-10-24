@@ -4,8 +4,8 @@
 [Open Hyper AI](https://github.com/forest0xia/dota2bot-OpenHyperAI) focused on team strategy:
 bots group up, push after won fights, stop over-farming and react like humans instead of instantly.
 
-The goal is a strong opponent **without unfair bonuses**. The optional FretBots bonus mode is still
-available (with difficulty voting) for players who want it.
+The goal is bots that play like smart Dota 2 players. **Completely fair:** no bonus gold, experience or
+stats, no cheats, no difficulty voting, no online requests. Install, start a lobby and play.
 
 > Bots installed correctly have names ending with **`.HATS`**.
 
@@ -22,9 +22,11 @@ available (with difficulty voting) for players who want it.
 - **Smarter defaults.** Push-oriented play (`Push_Frequency = 3`) and full thinking (`ThinkLess = 0`).
 - **One settings file.** All modes read settings through the same loader, so a single
   `vscripts/game/Customize/general.lua` overrides everything.
+- **No bonus modes.** FretBots and Buff mode (bonus gold/XP/stats, voting) are removed, together with
+  GPT chat and every network request. Bot chat is local.
 
-Everything else (127 heroes, item builds, all game modes, `!pos` / `!pick` / `!ban` commands,
-FretBots) comes from Open Hyper AI.
+Everything else (127 heroes, item builds, all game modes, `!pos` / `!pick` / `!ban` commands)
+comes from Open Hyper AI.
 
 ---
 
@@ -41,20 +43,21 @@ FretBots) comes from Open Hyper AI.
 3. Copy the `bots` folder from the archive into
    `...\steamapps\common\dota 2 beta\game\dota\scripts\vscripts\`.
 4. In Dota 2 create a **Custom Lobby**: Server Location **Local Host**, bot script **Local Dev Script**,
-   bot difficulty **Unfair**.
+   bot difficulty **Hard**.
+   Do not use **Unfair**: Valve gives Unfair enemy bots +25% gold and experience, which breaks fair play.
+   Smart Bots scripts do not read the difficulty setting themselves.
 
 ### Your settings
 
 Copy `bots\Customize` to `...\vscripts\game\Customize` and edit `general.lua` there.
 That copy survives updates of the bots folder.
 
-### Optional: FretBots bonus mode
+### In-game commands
 
-Bots get extra gold, XP and stats; players vote for the difficulty (0–10) at the start.
-Check **Enable Cheats** in the lobby, then during hero selection open the console and run:
-```
-sv_cheats 1; script_reload_code bots/FretBots
-```
+- Chat language of the bots: type `en`, `ru`, `zh` or `ja` in chat during hero selection,
+  or `!sp ru` at any time.
+- `!pos 2` — swap your role with the bot playing position 2. `!3pos 5` — move the 3rd bot to position 5.
+- `!pick sniper` / `!ban zuus` during hero selection (not in Captains Mode).
 
 ---
 

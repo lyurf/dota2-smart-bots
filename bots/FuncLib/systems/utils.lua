@@ -533,8 +533,6 @@ local Team = ____dota.Team
 local Tower = ____dota.Tower
 local UnitType = ____dota.UnitType
 local BotScriptEnums = ____dota.BotScriptEnums
-local ____http_req = require(GetScriptDirectory().."/ts_libs/utils/http_utils/http_req")
-local Request = ____http_req.Request
 local ____native_2Doperators = require(GetScriptDirectory().."/ts_libs/utils/native-operators")
 local add = ____native_2Doperators.add
 local dot = ____native_2Doperators.dot
@@ -1472,20 +1470,6 @@ function ____exports.DetermineEnemyBotRole(bot)
     end
     return estimatedRole.role
 end
-function ____exports.QueryCounters(heroId)
-    log("heroId=%s", heroId)
-    Request:RawGetRequest(
-        ("https://api.opendota.com/api/heroes/" .. tostring(heroId)) .. "/matchups",
-        function(res)
-            ____exports.PrintTable(res)
-        end
-    )
-end
-function ____exports.InitiStats()
-    Request:GetUUID(function(uuid)
-        log("uuid=%s", uuid)
-    end)
-end
 function ____exports.GetLoneDruid(bot)
     local res = ____exports.LoneDruid[bot:GetPlayerID()]
     if res == nil then
@@ -1814,7 +1798,7 @@ function ____exports.CountMissingEnemyHeroes()
     local count = 0
     for ____, playerdId in ipairs(GetTeamPlayers(GetOpposingTeam())) do
         do
-            local __continue268
+            local __continue264
             repeat
                 if IsHeroAlive(playerdId) then
                     local lastSeenInfo = GetHeroLastSeenInfo(playerdId)
@@ -1822,14 +1806,14 @@ function ____exports.CountMissingEnemyHeroes()
                         local firstInfo = lastSeenInfo[1]
                         if firstInfo.time_since_seen >= 2.5 then
                             count = count + 1
-                            __continue268 = true
+                            __continue264 = true
                             break
                         end
                     end
                 end
-                __continue268 = true
+                __continue264 = true
             until true
-            if not __continue268 then
+            if not __continue264 then
                 break
             end
         end
@@ -1886,27 +1870,27 @@ local blinkBuffer = 1200
 function ____exports.IsAnySpecialAOEThreatNearby(bot, nRadius)
     for ____, enemy in ipairs(GetUnitList(UnitType.EnemyHeroes)) do
         do
-            local __continue297
+            local __continue293
             repeat
                 if not ____exports.IsValidHero(enemy) then
-                    __continue297 = true
+                    __continue293 = true
                     break
                 end
                 local enemyName = enemy:GetUnitName()
                 if not (SpecialAOEHeroesDetails[enemyName] ~= nil) then
-                    __continue297 = true
+                    __continue293 = true
                     break
                 end
                 if GetUnitToUnitDistance(bot, enemy) > nRadius + blinkBuffer then
-                    __continue297 = true
+                    __continue293 = true
                     break
                 end
                 if DoesHeroMeetThreatConditions(enemy, SpecialAOEHeroesDetails[enemyName]) then
                     return true
                 end
-                __continue297 = true
+                __continue293 = true
             until true
-            if not __continue297 then
+            if not __continue293 then
                 break
             end
         end

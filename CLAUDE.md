@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **dota2bot-OpenHyperAI** project -- Lua bot scripts for Dota 2 that run in custom lobbies. Currently supports Patch 7.41/7.41a with 127 heroes.
 
-This repository is **Smart Bots (HATS)**, a fork of Open Hyper AI (based on upstream branch `pr-140-refactor`). Bot name suffix is `.HATS`. Goal: strong, strategic bots **without unfair bonuses**; FretBots stays optional with difficulty voting. The maintainer is a non-programmer who speaks Russian and tests in-game.
+This repository is **Smart Bots (HATS)**, a fork of Open Hyper AI (based on upstream branch `pr-140-refactor`). Bot name suffix is `.HATS`. Goal: fair bots that play like smart (ideally pro) Dota 2 players. **No bonuses of any kind**: FretBots, Buff mode, difficulty voting, GPT chat and all network calls were removed. Chat is local only; position/pick/ban commands stay. Do not reintroduce bonuses, cheats or online requests. The maintainer is a non-programmer who speaks Russian and tests in-game.
 
 Commit messages: do NOT add a `Claude-Session:` link (maintainer's request). A `Co-Authored-By` line is fine.
 
@@ -99,7 +99,7 @@ When user says "update for patch X.XX" or provides patch notes:
 ### Add a New Hero
 
 1. Copy a similar existing hero from `bots/BotsLib/` as template
-2. Add to `FretBots/HeroNames.lua`, `FuncLib/data/hero_roles_map.lua`, `FuncLib/data/spell_list.lua`
+2. Add to `FuncLib/data/hero_names_locale.lua`, `FuncLib/data/hero_roles_map.lua`, `FuncLib/data/spell_list.lua`
 3. See "New Heroes" section in `docs/PATCH_UPDATE_GUIDE.md`
 
 ### Fix a Hero's Item Build
@@ -119,7 +119,6 @@ When user says "update for patch X.XX" or provides patch notes:
 
 - **Use `GetItemComponents()` for item recipes** -- don't hardcode component arrays
 - **Use `sAbilityList[N]` references** when possible -- resilient to ability renames
-- **Always update BOTH neutral item files** (Buff/ AND FretBots/)
 - **Verify on Liquipedia** before trusting patch note summaries about ability names
 - **Test in-game** after changes -- some things can only be verified at runtime
 
