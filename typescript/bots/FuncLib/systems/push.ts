@@ -280,6 +280,22 @@ const ObjectiveState: Record<number, Partial<Record<Lane, LaneState>>> = {};
 /* -----------------------------------------------------------------------------
  * Desire front-door
  * ---------------------------------------------------------------------------*/
+/**
+ * Smart Bots: does the team have an advantage big enough to push into defenders?
+ * - at least 2 more heroes alive, or
+ * - Aegis with 4+ heroes alive, or
+ * - not fewer heroes alive and 8000+ net worth lead after the early game.
+ */
+function HasPushAdvantage(gameState: ReturnType<typeof getGlobalGameState>): boolean {
+    const aAlive = gameState.aliveAllyCount;
+    const eAlive = gameState.aliveEnemyCount;
+    if (aAlive < 3) return false;
+    if (aAlive >= eAlive + 2) return true;
+    if (gameState.hasAegis && aAlive >= 4) return true;
+    if (!gameState.isEarlyGame && aAlive >= eAlive && gameState.teamNetworth - gameState.enemyNetworth >= 8000) return true;
+    return false;
+}
+
 export function GetPushDesire(bot: Unit, lane: Lane): BotModeDesire {
     // 0) quick invalid checks
     if (bot.IsInvulnerable() || !bot.IsHero() || !bot.IsAlive() || !bot.GetUnitName().includes("hero") || bot.IsIllusion()) {
@@ -329,7 +345,10 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
     if (gameState.aliveAllyCount <= gameState.aliveEnemyCount - 2) return BotModeDesire.None;
     if (_pushCacheDefendPingSuppressed) return BotModeDesire.None;
     if (_pushCacheEnemiesAtAncient >= 1) return BotModeDesire.None;
-    if (_pushCacheLaneBlocked[lane]) return BotModeDesire.None;
+    // Smart Bots: a team with a clear advantage (more heroes alive, Aegis or a big net worth lead)
+    // pushes through defenders like a pro team instead of waiting until the enemy dies.
+    const bTeamAdvantage = HasPushAdvantage(gameState);
+    if (_pushCacheLaneBlocked[lane] && !bTeamAdvantage) return BotModeDesire.None;
 
     // During laning phase, all team members must be level 6+ to push.
     // After laning, only require the pushing bot itself to be 6+ (checked above).
@@ -452,7 +471,7 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
     // Each bot pushes whichever lane it's closest to, rather than the global "best" lane.
     // All-bots games keep the single-lane convergence for coordinated pressure.
     const hasEnemyHuman = Fu.Utils.IsHumanPlayerInTeam(GetOpposingTeam());
-    if (hasEnemyHuman) {
+    if (hasEnemyHuman && !bTeamAdvantage) {
         // Allow pushing any lane — don't force all bots to one lane
         // Still skip if this lane has no buildings left to push
         const nextBuilding = GetNextEnemyBuildingOnLane(lane);
@@ -619,6 +638,10 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
                 result = math.max(result, eAliveCount === 0 ? 0.525 : 0.45);
             }
             if (barracksDownBoost) {
+                result = math.max(result, 0.5);
+            }
+            // Smart Bots: with a clear advantage, group up and take objectives instead of farming
+            if (bTeamAdvantage && botHP > 0.5) {
                 result = math.max(result, 0.5);
             }
         }
