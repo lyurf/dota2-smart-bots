@@ -95,7 +95,7 @@ local ancientChineseStoryTeams = {
 }
 
 -- 随机使用古代神话故事主题 Teams
-defaultTeams = RandomInt(1, 2) >= 2 and ancientChineseStoryTeams or defaultTeams
+-- Smart Bots: always use real pro rosters (upstream used the mythology list in half of the games).
 
 local function generateTeam(overrides, customTeamName)
     local playerList = { }
