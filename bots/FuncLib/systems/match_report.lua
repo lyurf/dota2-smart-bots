@@ -60,7 +60,8 @@ local function CountHeroes(bot, bEnemy, radius)
 	if not ok or list == nil then return 0 end
 	local n = 0
 	for _, h in pairs(list) do
-		if h ~= nil and not h:IsIllusion() then n = n + 1 end
+		-- IsIllusion() only works on teammates (on enemies it spams the console), so enemies are counted as is
+		if h ~= nil and (bEnemy or not h:IsIllusion()) then n = n + 1 end
 	end
 	return n
 end
