@@ -1,20 +1,14 @@
 --[[
-Smart Bots (HATS) - fair neutral items for bots.
+Smart Bots (HATS) - neutral items for bots.
 
 Valve does not let bots craft neutral items, so without help they never get one.
-This server script crafts them for bots by the same rules a player follows, and
-gives nothing else (no gold, experience, stats or early items):
+This server script gives every bot a neutral item as soon as each tier becomes
+available (5 / 15 / 25 / 35 / 60 min, Turbo twice as fast), with a small random
+delay of up to 45 seconds so not everyone gets it in the same second. It gives
+nothing else (no gold, experience or stats).
 
-  * Bots earn Madstone only by killing neutral creeps (and get a share when an
-    ally clears a camp), starting from minute 5, limited by the same time caps
-    as players.
-  * A tier is crafted only when it is unlocked by game time AND the bot has
-    collected enough Madstone for it.
-  * Like a player, the bot sees 3 random artifacts and 3 random enchantments of
-    that tier and picks the ones that suit its role and attack type.
-
-Madstone per camp is approximated per creep, because the script sees creep
-kills, not camp clears.
+Like a player, the bot sees 3 random artifacts and 3 random enchantments of the
+tier and picks the ones that suit its role and attack type.
 
 How to start (once per game, during hero selection or later):
   lobby with "Enable Cheats" checked, then in the console:
@@ -38,26 +32,16 @@ local Pool = require('bots.FuncLib.data.neutral_items')
 
 FairNeutrals = { started = true }
 
--- Tier unlock times and Madstone needed, in minutes of game time (regular / turbo).
--- Madstone values are cumulative totals, same as the player's caps.
+-- Tier unlock times in minutes of game time (regular / turbo).
 local TIER_UNLOCK_MIN       = { 5, 15, 25, 35, 60 }
 local TIER_UNLOCK_MIN_TURBO = { 2.5, 7.5, 12.5, 17.5, 30 }
-local TIER_MADSTONE_TOTAL   = { 5, 15, 25, 35, 45 }
-local MADSTONE_START_MIN       = 5
-local MADSTONE_START_MIN_TURBO = 2.5
-
--- Madstone per creep killed. A regular camp gives the killer 2 and a random ally 1,
--- an ancient camp 3 and 2; camps have about three creeps.
-local MADSTONE_KILLER_REGULAR = 0.7
-local MADSTONE_ALLY_REGULAR   = 0.35
-local MADSTONE_KILLER_ANCIENT = 1.0
-local MADSTONE_ALLY_ANCIENT   = 0.7
+local MAX_DELAY_SEC = 45 -- random per bot and tier (halved in Turbo)
 
 local OPTIONS_PER_CRAFT = 3
 local NEUTRAL_SLOT = 16
 local THINK_INTERVAL = 1.0
 
-local bots = {}      -- playerID -> { hero, madstone, tier }
+local bots = {}      -- playerID -> { hero, tier, readyAt }
 local isTurbo = nil
 
 local function IsTurbo()
@@ -81,14 +65,6 @@ local function UnlockedTier(minutes)
 	return tier
 end
 
--- Most Madstone a hero can hold at this time (excess is lost, like for players).
-local function MadstoneCap(minutes)
-	local tier = UnlockedTier(minutes)
-	if tier == 0 then return 0 end
-	if minutes >= (IsTurbo() and 35 or 70) then return math.huge end
-	return TIER_MADSTONE_TOTAL[tier]
-end
-
 local function RegisterBots()
 	for team = DOTA_TEAM_GOODGUYS, DOTA_TEAM_BADGUYS do
 		for i = 0, PlayerResource:GetPlayerCountForTeam(team) - 1 do
@@ -96,19 +72,11 @@ local function RegisterBots()
 			if pid and pid >= 0 and PlayerResource:IsFakeClient(pid) and bots[pid] == nil then
 				local hero = PlayerResource:GetSelectedHeroEntity(pid)
 				if hero then
-					bots[pid] = { hero = hero, madstone = 0, tier = 0 }
+					bots[pid] = { hero = hero, tier = 0, readyAt = nil }
 				end
 			end
 		end
 	end
-end
-
-local function AddMadstone(pid, amount)
-	local b = bots[pid]
-	if b == nil then return end
-	local minutes = GameMinutes()
-	local cap = MadstoneCap(minutes)
-	b.madstone = math.min(b.madstone + amount, cap)
 end
 
 -- Estimated position 1..5 inside the team: richest hero = 1, poorest = 5.
@@ -195,38 +163,8 @@ local function Craft(pid, tier)
 	GiveItem(hero, artifact.name)
 	if enchant then GiveItem(hero, enchant.name) end
 	b.tier = tier
-	report('[FairNeutrals] %s (pos %d) crafted tier %d: %s + %s at %.1f min, madstone %.1f',
-		hero:GetUnitName(), pos, tier, artifact.name, enchant and enchant.name or '-', GameMinutes(), b.madstone)
-end
-
-function FairNeutrals:OnEntityKilled(event)
-	local victim = event.entindex_killed and EntIndexToHScript(event.entindex_killed)
-	local attacker = event.entindex_attacker and EntIndexToHScript(event.entindex_attacker)
-	if victim == nil or attacker == nil then return end
-	if victim:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS then return end
-	if not (victim.IsNeutralUnitType and victim:IsNeutralUnitType()) then return end
-	local victimName = victim:GetUnitName() or ''
-	if string.find(victimName, 'roshan') or string.find(victimName, 'miniboss') then return end -- Roshan, Tormentor
-
-	local minutes = GameMinutes()
-	if minutes < (IsTurbo() and MADSTONE_START_MIN_TURBO or MADSTONE_START_MIN) then return end
-
-	local killerPid = attacker.GetPlayerOwnerID and attacker:GetPlayerOwnerID() or -1
-	if killerPid == nil or killerPid < 0 then return end
-
-	local ancient = victim.IsAncient and victim:IsAncient()
-	AddMadstone(killerPid, ancient and MADSTONE_KILLER_ANCIENT or MADSTONE_KILLER_REGULAR)
-
-	-- Share for one random ally of the killer
-	local team = PlayerResource:GetTeam(killerPid)
-	local allies = {}
-	for i = 0, PlayerResource:GetPlayerCountForTeam(team) - 1 do
-		local pid = PlayerResource:GetNthPlayerIDOnTeam(team, i)
-		if pid and pid >= 0 and pid ~= killerPid then table.insert(allies, pid) end
-	end
-	if #allies > 0 then
-		AddMadstone(allies[RandomInt(1, #allies)], ancient and MADSTONE_ALLY_ANCIENT or MADSTONE_ALLY_REGULAR)
-	end
+	report('[FairNeutrals] %s (pos %d) got tier %d: %s + %s at %.1f min',
+		hero:GetUnitName(), pos, tier, artifact.name, enchant and enchant.name or '-', GameMinutes())
 end
 
 function FairNeutrals:Think()
@@ -235,21 +173,26 @@ function FairNeutrals:Think()
 	if state < DOTA_GAMERULES_STATE_PRE_GAME then return THINK_INTERVAL end
 
 	RegisterBots()
-	local unlocked = UnlockedTier(GameMinutes())
+	local minutes = GameMinutes()
+	local unlocked = UnlockedTier(minutes)
 	for pid, b in pairs(bots) do
 		local nextTier = b.tier + 1
-		if nextTier <= unlocked and nextTier <= #TIER_MADSTONE_TOTAL
-			and b.madstone >= TIER_MADSTONE_TOTAL[nextTier]
-			and b.hero and not b.hero:IsNull() and b.hero:IsAlive() then
-			Craft(pid, nextTier)
+		if nextTier <= unlocked and nextTier <= #TIER_UNLOCK_MIN then
+			if b.readyAt == nil then
+				local maxDelay = IsTurbo() and MAX_DELAY_SEC / 2 or MAX_DELAY_SEC
+				b.readyAt = minutes + RandomFloat(0, maxDelay) / 60
+			end
+			if minutes >= b.readyAt and b.hero and not b.hero:IsNull() and b.hero:IsAlive() then
+				Craft(pid, nextTier)
+				b.readyAt = nil
+			end
 		end
 	end
 	return THINK_INTERVAL
 end
 
-ListenToGameEvent('entity_killed', Dynamic_Wrap(FairNeutrals, 'OnEntityKilled'), FairNeutrals)
 local thinker = SpawnEntityFromTableSynchronous('info_target', { targetname = 'smart_bots_fair_neutrals' })
 thinker:SetThink('Think', FairNeutrals, 'fair_neutrals', THINK_INTERVAL)
 
-GameRules:SendCustomMessage('Smart Bots: fair neutral items enabled. Bots craft neutrals by the same rules as players.', 0, 0)
+GameRules:SendCustomMessage('Smart Bots: neutral items enabled. Bots get each tier when it unlocks.', 0, 0)
 report('[FairNeutrals] Started.')
