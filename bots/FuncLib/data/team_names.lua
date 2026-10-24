@@ -104,7 +104,7 @@ local function generateTeam(overrides, customTeamName)
     repeat
         randomNum = RandomInt(1, #defaultTeams)
     -- ensure a team can only pick from certain team names.
-    until randomNum % 2 == GetTeam() - 2 and (defaultTeams[randomNum].name ~= 'ADD' or defaultTeams[randomNum].name ~= '上古')
+    until randomNum % 2 == GetTeam() - 2 and defaultTeams[randomNum].name ~= 'ADD' and defaultTeams[randomNum].name ~= '上古' -- Smart Bots: was `or`, which let the filler list (Azazel, Lucifer...) be picked as a team
     -- log('randomNum='..tostring(randomNum)..', team name='..tostring(defaultTeams[randomNum].name)..', for team='..tostring(GetTeam()))
     playerList = Utils.MergeLists(defaultTeams[randomNum].players, defaultTeams[#defaultTeams].players)
     if overrides and #overrides > 0 then
