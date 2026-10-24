@@ -31,6 +31,9 @@ if you want a bit more challenge.
 - **Smarter drafting.** Fixed the inverted counter-pick math (bots used to pick heroes the enemy
   counters). In Captains Mode a bot captain bans and picks by role fit, counters and synergy
   instead of random heroes.
+- **Hunting the enemy carry.** After the laning phase, when the enemy's most farmed hero is seen
+  alone away from his towers, the 3–4 closest healthy bots go and kill him together. In lane,
+  bots harass the enemy carry/mid first.
 - **Cores farm.** The carry and mid keep farming between fights whatever `Push_Frequency` is set to;
   everyone farms less and takes objectives when the team is 2+ heroes up.
 - **Smarter defaults.** Balanced push/farm (`Push_Frequency = 2`) and full thinking (`ThinkLess = 0`).

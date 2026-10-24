@@ -11,6 +11,7 @@ local Fu = require(GetScriptDirectory()..'/FuncLib/func_utils')
 local Item = require(GetScriptDirectory()..'/FuncLib/systems/item')
 local Roles = require(GetScriptDirectory()..'/FuncLib/systems/role')
 local AttackSpecialUnit = require(GetScriptDirectory()..'/FuncLib/hero/special_units')
+local Hunt = require(GetScriptDirectory()..'/FuncLib/systems/hunt')
 
 local X = {}
 local team = GetTeam()
@@ -213,6 +214,13 @@ function GetDesireHelper()
             -- Scale by bot HP: suppress below 50%, zero below 30%
             return RemapValClamped(nBotHP, 0.3, 0.7, BOT_MODE_DESIRE_NONE, 0.4)
         end
+    end
+
+    -- Smart Bots: hunt the enemy carry together when he is seen alone (see FuncLib/systems/hunt.lua)
+    local nHuntDesire = Hunt.GetDesire(bot)
+    if nHuntDesire > 0 then
+        hTargetCreep = nil
+        return nHuntDesire
     end
 
 	-- Tower danger: boost desire above Valve's attack (0.65) so our Think can pull bot back
@@ -622,6 +630,9 @@ function Think()
     end
 
     ItemOpsThink()
+
+    -- Smart Bots: hunting the enemy carry (desire set in GetDesireHelper)
+    if Hunt.IsHunting(bot) and Hunt.Think(bot) then return end
 
 	if Fu.IsValid(hTargetCreep) then
 		bot:Action_AttackUnit(hTargetCreep, true)

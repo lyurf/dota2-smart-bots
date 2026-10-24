@@ -201,6 +201,11 @@ sv_cheats 1; script_reload_code bots/FairNeutrals; script_reload_code bots/BotBo
   ```
   [DEATH 18:42] lion pos 5 (level 11): modes before death retreat <- ward, HP 64% 8s before, enemies near 3, allies near 0, enemy half (1200, 3400)
   ```
+- Когда боты идут убивать вашего керри (самого нафармленного героя), в консоли появляется строка:
+  ```
+  [HUNT 18:05] ogre_magi, warlock, kunkka go after sniper (pos 1, 0 enemies near him)
+  [HUNT 18:21] stop hunting sniper: target dead
+  ```
 - Эти строки помогают сравнивать игры и улучшать ботов: присылайте их вместе с отзывами.
 
 ## 11. Команды в чате

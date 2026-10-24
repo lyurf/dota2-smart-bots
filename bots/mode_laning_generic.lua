@@ -1,5 +1,6 @@
 local Utils = require( GetScriptDirectory()..'/FuncLib/systems/utils')
 local Fu = require( GetScriptDirectory()..'/FuncLib/func_utils')
+local EnemyRoles = require( GetScriptDirectory()..'/FuncLib/hero/enemy_role_estimation')
 
 local Version      = require(GetScriptDirectory()..'/FuncLib/systems/version')
 local Localization = require(GetScriptDirectory()..'/FuncLib/systems/localization')
@@ -424,13 +425,14 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 
 		-- Smart Bots: lane harass. Supports trade right-clicks actively (they have no last hits to
 		-- take), cores harass when healthy. One hit at a time with a short pause, so the bot does
-		-- not stand in the creep wave and keep the aggro. Prefer the lowest-HP enemy in range.
+		-- not stand in the creep wave and keep the aggro. Prefer the lowest-HP enemy in range, the enemy carry/mid first.
 		if DotaTime() >= fNextHarassTime then
 			local bIsCore = Fu.IsCore(bot)
 			local fMinHP = bIsCore and 0.6 or 0.45
 			local nExtraRange = bIsCore and 50 or 200
 			if Fu.GetHP(bot) > fMinHP then
 				local target, targetHP = nil, math.huge
+				pcall(EnemyRoles.UpdateEnemyHeroPositions)
 				for _, enemy in pairs(nInRangeEnemy) do
 					if Fu.IsValidHero(enemy)
 					and Fu.CanBeAttacked(enemy)
@@ -438,7 +440,10 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 					and Fu.IsInRange(bot, enemy, botAttackRange + nExtraRange)
 					and not (Fu.IsValidBuilding(nEnemyTowers[1]) and GetUnitToUnitDistance(enemy, nEnemyTowers[1]) < 800)
 					then
+						-- Smart Bots: the enemy carry/mid is harassed first unless another hero is much lower
 						local hp = enemy:GetHealth()
+						local okPos, enemyPos = pcall(EnemyRoles.GetEnemyPosition, enemy:GetPlayerID())
+						if okPos and enemyPos ~= nil and enemyPos <= 2 then hp = hp * 0.6 end
 						if hp < targetHP then target, targetHP = enemy, hp end
 					end
 				end

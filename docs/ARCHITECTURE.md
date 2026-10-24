@@ -10,6 +10,9 @@
 > which also falls back to the reverse entry; All Pick (`hero_selection.lua`) and Captains Mode
 > (`captain_mode.ts`) both score picks with it. Console test reports (`[DEATH]`, `[GAME mm:00]`) live in
 > `FuncLib/systems/match_report.lua`, called from `mode_retreat_generic.lua` GetDesire.
+> Carry hunting (`FuncLib/systems/hunt.lua`) runs inside `mode_team_roam_generic.lua`: after laning, the
+> 3-4 closest healthy bots attack the enemy's estimated pos 1/2 (`enemy_role_estimation`) when he is seen
+> isolated away from towers. Each bot computes the same hunter list independently (no shared state).
 
 
 This document is the single source of truth for understanding, maintaining, and updating the dota2bot-OpenHyperAI codebase. It is designed so that a developer (or AI assistant) can quickly make targeted updates without re-scanning the entire repository.
