@@ -82,29 +82,32 @@ function writeLua(matchupDict: Record<string, Record<string, number>>): void {
     // Add helper functions so hero_selection can use one file for everything
     lines.push("}\n");
     lines.push("-- Helper functions (derived from advantage data)");
-    lines.push("-- Synergy: if we have NEGATIVE advantage vs enemy when ally is on our team,");
-    lines.push("-- that ally helps us. We approximate: heroes that counter our counters are synergies.");
+    lines.push("-- heroList[hero][enemy] = how much hero's win rate against enemy is above 50%");
+    lines.push("-- (positive: hero beats enemy, negative: enemy beats hero). Each hero keeps only its");
+    lines.push("-- 20 best and 20 worst matchups, so a missing entry falls back to the reverse one.");
     lines.push("function heroList.GetAdvantage(hero, enemy)");
     lines.push("    if heroList[hero] and heroList[hero][enemy] then return heroList[hero][enemy] end");
+    lines.push("    if heroList[enemy] and heroList[enemy][hero] then return -heroList[enemy][hero] end");
     lines.push("    return 0");
-    lines.push("end\n");
-    lines.push("-- IsSynergy: hero2 counters heroes that counter hero1 (covers each other's weakness)");
+    lines.push("end");
+    lines.push("");
+    lines.push("-- IsSynergy: hero2 beats at least 2 heroes that beat hero1 (they cover each other's weakness)");
     lines.push("function heroList.IsSynergy(hero1, hero2)");
     lines.push("    if not heroList[hero1] or not heroList[hero2] then return false end");
-    lines.push("    -- If hero2 is good against heroes that counter hero1, they synergize");
     lines.push("    local synergyScore = 0");
     lines.push("    for enemy, adv in pairs(heroList[hero1]) do");
-    lines.push("        if adv > 1.5 then -- enemy counters hero1");
-    lines.push("            local hero2Adv = heroList.GetAdvantage(enemy, hero2)");
-    lines.push("            if hero2Adv > 1.5 then synergyScore = synergyScore + 1 end -- hero2 counters that enemy");
+    lines.push("        if adv < -1.5 then -- enemy beats hero1");
+    lines.push("            if heroList.GetAdvantage(hero2, enemy) > 1.5 then synergyScore = synergyScore + 1 end -- hero2 beats that enemy");
     lines.push("        end");
     lines.push("    end");
     lines.push("    return synergyScore >= 2");
-    lines.push("end\n");
-    lines.push("-- IsCounter: enemy has significant advantage over hero");
+    lines.push("end");
+    lines.push("");
+    lines.push("-- IsCounter: enemy has a significant advantage over hero");
     lines.push("function heroList.IsCounter(hero, enemy)");
-    lines.push("    return heroList.GetAdvantage(hero, enemy) > 2.0");
-    lines.push("end\n");
+    lines.push("    return heroList.GetAdvantage(hero, enemy) < -2.0");
+    lines.push("end");
+    lines.push("");
     lines.push("return heroList\n");
     fs.writeFileSync(OUT_PATH, lines.join("\n"), "utf-8");
 }
@@ -133,15 +136,17 @@ async function main() {
                     if (entry.matchCount < 10) continue;
                     const enemyName = idToName[entry.heroId2];
                     if (!enemyName) continue;
-                    const enemyWinrate = (entry.winCount / entry.matchCount) * 100;
-                    const advantage = Math.round((enemyWinrate - 50) * 100) / 100;
+                    // winCount = games the hero (heroId) won against heroId2, so a positive
+                    // value means this hero beats that enemy (e.g. Anti-Mage vs Medusa).
+                    const winrate = (entry.winCount / entry.matchCount) * 100;
+                    const advantage = Math.round((winrate - 50) * 100) / 100;
                     allCounters.push([enemyName, advantage]);
                 }
-                // Keep only top 20 (biggest counters) and bottom 20 (who we counter)
+                // Keep only the top 20 (heroes we beat) and bottom 20 (heroes that beat us)
                 allCounters.sort((a, b) => b[1] - a[1]);
                 /**
-                 * Top 20 = "who counters me" (avoid picking into these)
-                 * Bottom 20 = "who I counter" (pick me against these)
+                 * Top 20 = "who I counter" (pick me against these)
+                 * Bottom 20 = "who counters me" (avoid picking into these)
                  */
                 const top20 = allCounters.slice(0, 20);
                 const bot20 = allCounters.slice(-20);

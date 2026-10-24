@@ -5340,30 +5340,30 @@ local heroList = {
 }
 
 -- Helper functions (derived from advantage data)
--- Synergy: if we have NEGATIVE advantage vs enemy when ally is on our team,
--- that ally helps us. We approximate: heroes that counter our counters are synergies.
+-- heroList[hero][enemy] = how much hero's win rate against enemy is above 50%
+-- (positive: hero beats enemy, negative: enemy beats hero). Each hero keeps only its
+-- 20 best and 20 worst matchups, so a missing entry falls back to the reverse one.
 function heroList.GetAdvantage(hero, enemy)
     if heroList[hero] and heroList[hero][enemy] then return heroList[hero][enemy] end
+    if heroList[enemy] and heroList[enemy][hero] then return -heroList[enemy][hero] end
     return 0
 end
 
--- IsSynergy: hero2 counters heroes that counter hero1 (covers each other's weakness)
+-- IsSynergy: hero2 beats at least 2 heroes that beat hero1 (they cover each other's weakness)
 function heroList.IsSynergy(hero1, hero2)
     if not heroList[hero1] or not heroList[hero2] then return false end
-    -- If hero2 is good against heroes that counter hero1, they synergize
     local synergyScore = 0
     for enemy, adv in pairs(heroList[hero1]) do
-        if adv > 1.5 then -- enemy counters hero1
-            local hero2Adv = heroList.GetAdvantage(enemy, hero2)
-            if hero2Adv > 1.5 then synergyScore = synergyScore + 1 end -- hero2 counters that enemy
+        if adv < -1.5 then -- enemy beats hero1
+            if heroList.GetAdvantage(hero2, enemy) > 1.5 then synergyScore = synergyScore + 1 end -- hero2 beats that enemy
         end
     end
     return synergyScore >= 2
 end
 
--- IsCounter: enemy has significant advantage over hero
+-- IsCounter: enemy has a significant advantage over hero
 function heroList.IsCounter(hero, enemy)
-    return heroList.GetAdvantage(hero, enemy) > 2.0
+    return heroList.GetAdvantage(hero, enemy) < -2.0
 end
 
 return heroList

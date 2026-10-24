@@ -1,6 +1,9 @@
 import { GameState, HeroPickState, Lane, Team } from "bots/ts_libs/dota";
 import { CanBeOfflaner, CanBeMidlaner, CanBeSupport, CanBeSafeLaneCarry } from "bots/FuncLib/systems/role";
 import { HeroName } from "bots/ts_libs/dota/heroes";
+import { GetHeroPositions } from "bots/FuncLib/data/hero_pos_weights";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import Matchups = require("bots/FuncLib/data/matchups_data");
 
 const UnImplementedHeroes: string[] = [];
 
@@ -22,6 +25,28 @@ const Max = 20;
 const CMdebugMode = true;
 
 const UnavailableHeroes: string[] = ["npc_dota_hero_techies"];
+
+// Heroes the bots play poorly (same list as hero_selection.lua). The bot captain does not draft them.
+const WeakHeroes: string[] = [
+    "npc_dota_hero_chen",
+    "npc_dota_hero_ancient_apparition",
+    "npc_dota_hero_tinker",
+    "npc_dota_hero_pangolier",
+    "npc_dota_hero_tusk",
+    "npc_dota_hero_morphling",
+    "npc_dota_hero_visage",
+    "npc_dota_hero_void_spirit",
+    "npc_dota_hero_ember_spirit",
+    "npc_dota_hero_rubick",
+    "npc_dota_hero_brewmaster",
+    "npc_dota_hero_puck",
+    "npc_dota_hero_marci",
+    "npc_dota_hero_lone_druid",
+    "npc_dota_hero_primal_beast",
+    "npc_dota_hero_dark_willow",
+    "npc_dota_hero_hoodwink",
+    "npc_dota_hero_wisp",
+];
 
 const HeroLanes: { [team: string]: { [i: number]: number } } = {
     TEAM_RADIANT: {
@@ -119,7 +144,7 @@ function BansHero() {
     if (!IsPlayerBot(GetCMCaptain()) || !IsPlayerInHeroSelectionControl(GetCMCaptain())) {
         return;
     }
-    const BannedHero = RandomHero();
+    const BannedHero = BestBan();
     log("%s is banned", BannedHero);
     CMBanHero(BannedHero);
     BanCycle = BanCycle + 1;
@@ -132,31 +157,20 @@ function PicksHero() {
     }
 
     const sTeamName = GetTeam() === Team.Radiant ? "TEAM_RADIANT" : "TEAM_DIRE";
-    let PickedHero = RandomHero() as HeroName;
+    // Order: offlaner, support, mid, support, carry. The carry and mid go late so they
+    // can counter the enemy lineup, like captains usually do.
+    let PickedHero: HeroName;
     if (PickCycle === 1) {
-        while (!CanBeOfflaner(PickedHero)) {
-            PickedHero = RandomHero();
-        }
+        PickedHero = BestHeroForRole([3], CanBeOfflaner);
         PairsHeroNameNRole[sTeamName][PickedHero] = "offlaner";
-    } else if (PickCycle === 2) {
-        while (!CanBeSupport(PickedHero)) {
-            PickedHero = RandomHero();
-        }
+    } else if (PickCycle === 2 || PickCycle === 4) {
+        PickedHero = BestHeroForRole([4, 5], CanBeSupport);
         PairsHeroNameNRole[sTeamName][PickedHero] = "support";
     } else if (PickCycle === 3) {
-        while (!CanBeMidlaner(PickedHero)) {
-            PickedHero = RandomHero();
-        }
+        PickedHero = BestHeroForRole([2], CanBeMidlaner);
         PairsHeroNameNRole[sTeamName][PickedHero] = "midlaner";
-    } else if (PickCycle === 4) {
-        while (!CanBeSupport(PickedHero)) {
-            PickedHero = RandomHero();
-        }
-        PairsHeroNameNRole[sTeamName][PickedHero] = "support";
-    } else if (PickCycle === 5) {
-        while (!CanBeSafeLaneCarry(PickedHero)) {
-            PickedHero = RandomHero();
-        }
+    } else {
+        PickedHero = BestHeroForRole([1], CanBeSafeLaneCarry);
         PairsHeroNameNRole[sTeamName][PickedHero] = "carry";
     }
 
@@ -199,10 +213,164 @@ function IsUnavailableHero(name: string): boolean {
 // Random hero which is non picked, non banned, or non human picked heroes if the human is the captain
 function RandomHero(): HeroName {
     let hero = allBotHeroes[RandomInt(1, allBotHeroes.length) - 1];
-    while (IsUnavailableHero(hero) || IsCMPickedHero(GetTeam(), hero) || IsCMPickedHero(GetOpposingTeam(), hero) || IsCMBannedHero(hero)) {
+    for (let i = 0; i < 1000 && IsTaken(hero); i++) {
         hero = allBotHeroes[RandomInt(1, allBotHeroes.length) - 1];
     }
     return hero;
+}
+
+// ----------------------------------------- CAPTAIN'S MODE DRAFT SCORING -----------------------------------------
+// Smart Bots: the bot captain drafts with the same matchup data as All Pick instead of random heroes.
+
+function IsTaken(hero: string): boolean {
+    return IsUnavailableHero(hero) || IsCMPickedHero(GetTeam(), hero) || IsCMPickedHero(GetOpposingTeam(), hero) || IsCMBannedHero(hero);
+}
+
+function IsWeakHero(hero: string): boolean {
+    for (const h of WeakHeroes) {
+        if (h === hero) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function PickedHeroesOf(team: Team): string[] {
+    const result: string[] = [];
+    for (const h of allBotHeroes) {
+        if (IsCMPickedHero(team, h)) {
+            result.push(h);
+        }
+    }
+    return result;
+}
+
+function SignedSqrt(x: number): number {
+    return x >= 0 ? Math.sqrt(x) : -Math.sqrt(-x);
+}
+
+// Best fit (0..100) of the hero for any of the given positions.
+function RoleWeight(hero: string, positions: number[]): number {
+    const weights = GetHeroPositions()[hero];
+    if (weights === undefined) {
+        return 0;
+    }
+    let best = 0;
+    for (const pos of positions) {
+        const w = weights[pos - 1];
+        if (w !== undefined && w > best) {
+            best = w;
+        }
+    }
+    return best;
+}
+
+// How strong a hero is in general: average advantage over every other hero.
+const generalStrength: { [hero: string]: number } = {};
+function GeneralStrength(hero: string): number {
+    const cached = generalStrength[hero];
+    if (cached !== undefined) {
+        return cached;
+    }
+    let sum = 0;
+    let count = 0;
+    for (const other of allBotHeroes) {
+        if (other !== hero) {
+            const adv = Matchups.GetAdvantage(hero, other);
+            if (adv !== 0) {
+                sum = sum + adv;
+                count = count + 1;
+            }
+        }
+    }
+    const value = count > 0 ? sum / count : 0;
+    generalStrength[hero] = value;
+    return value;
+}
+
+// Weighted random pick among the best few candidates (for picks 50/30/20, for bans 35/25/20/12/8).
+function PickFromTop(scored: { name: HeroName; score: number }[], weights: number[]): HeroName | undefined {
+    if (scored.length === 0) {
+        return undefined;
+    }
+    scored.sort((a, b) => b.score - a.score);
+    let roll = RandomInt(1, 100);
+    for (let i = 0; i < weights.length && i < scored.length; i++) {
+        roll = roll - weights[i];
+        if (roll <= 0) {
+            return scored[i].name;
+        }
+    }
+    return scored[0].name;
+}
+
+const PICK_FUZZ = [50, 30, 20];
+const BAN_FUZZ = [35, 25, 20, 12, 8];
+// A hero must fit the role at least this well (hero_pos_weights, 0..100) to be drafted for it.
+const MIN_ROLE_WEIGHT = 40;
+
+function BestHeroForRole(positions: number[], canPlay: (hero: HeroName) => boolean): HeroName {
+    const enemies = PickedHeroesOf(GetOpposingTeam());
+    const allies = PickedHeroesOf(GetTeam());
+    const scored: { name: HeroName; score: number }[] = [];
+    const scoredLooseFit: { name: HeroName; score: number }[] = [];
+    for (const hero of allBotHeroes) {
+        if (!IsTaken(hero) && !IsWeakHero(hero) && canPlay(hero)) {
+            const roleWeight = RoleWeight(hero, positions);
+            // Role fit counts most: a hero that fits the role well is worth more than a small counter.
+            let score = (roleWeight - 50) / 5;
+            for (const e of enemies) {
+                score = score + SignedSqrt(Matchups.GetAdvantage(hero, e));
+            }
+            for (const a of allies) {
+                if (Matchups.IsSynergy(hero, a)) {
+                    score = score + 1.5;
+                }
+            }
+            score = score + GeneralStrength(hero) / 2;
+            if (roleWeight >= MIN_ROLE_WEIGHT) {
+                scored.push({ name: hero, score: score });
+            } else {
+                scoredLooseFit.push({ name: hero, score: score });
+            }
+        }
+    }
+    const best = PickFromTop(scored, PICK_FUZZ) ?? PickFromTop(scoredLooseFit, PICK_FUZZ);
+    if (best !== undefined) {
+        log("CM pick for positions %s: %s", positions.join("/"), best);
+        return best;
+    }
+    // Fallback: any free hero that can play the role (bounded, never loops forever).
+    for (let i = 0; i < 300; i++) {
+        const hero = RandomHero();
+        if (canPlay(hero)) {
+            return hero;
+        }
+    }
+    return RandomHero();
+}
+
+// Ban the hero that would hurt us most: strong in general, good against the heroes we
+// already have, and good together with the heroes the enemy already has.
+function BestBan(): HeroName {
+    const enemies = PickedHeroesOf(GetOpposingTeam());
+    const allies = PickedHeroesOf(GetTeam());
+    const scored: { name: HeroName; score: number }[] = [];
+    for (const hero of allBotHeroes) {
+        if (!IsTaken(hero)) {
+            let score = GeneralStrength(hero);
+            for (const a of allies) {
+                score = score + SignedSqrt(Matchups.GetAdvantage(hero, a));
+            }
+            for (const e of enemies) {
+                if (Matchups.IsSynergy(hero, e)) {
+                    score = score + 1.5;
+                }
+            }
+            scored.push({ name: hero, score: score });
+        }
+    }
+    return PickFromTop(scored, BAN_FUZZ) ?? RandomHero();
 }
 
 // Check if the human already pick the hero in captain's mode

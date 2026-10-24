@@ -5,7 +5,7 @@
     "noImplicitSelf": true,
     "tstlVerbose": true,
     "luaLibImport": "inline",
-    "noResolvePaths": ["bots/FuncLib/func_utils", "bots/FunLib/jmz_func", "../FunLib/jmz_func", "bots/FuncLib/systems/custom_loader"],
+    "noResolvePaths": ["bots/FuncLib/func_utils", "bots/FunLib/jmz_func", "../FunLib/jmz_func", "bots/FuncLib/systems/custom_loader", "bots/FuncLib/data/matchups_data"],
   },
   "compilerOptions": {
     "baseUrl": "./typescript",

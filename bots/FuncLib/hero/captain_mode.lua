@@ -1,5 +1,17 @@
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 -- Lua Library inline imports
+local function __TS__ArraySort(self, compareFn)
+    if compareFn ~= nil then
+        table.sort(
+            self,
+            function(a, b) return compareFn(nil, a, b) < 0 end
+        )
+    else
+        table.sort(self)
+    end
+    return self
+end
+
 local function __TS__CountVarargs(...)
     return select("#", ...)
 end
@@ -79,7 +91,7 @@ local function __TS__ArraySplice(self, ...)
 end
 -- End of Lua Library inline imports
 local ____exports = {}
-local BansHero, PicksHero, AlreadyInTable, IsUnavailableHero, RandomHero, WasHumansDonePicking, SelectsHero, GetTeamSelectedHeroes, UpdateSelectedHeroes, FillLaneAssignmentTable, UnImplementedHeroes, ListPickedHeroes, AllHeroesSelected, BanCycle, PickCycle, UnavailableHeroes, HeroLanes, allBotHeroes, humanPick, RoleAssignment
+local BansHero, PicksHero, AlreadyInTable, IsUnavailableHero, RandomHero, IsTaken, IsWeakHero, PickedHeroesOf, SignedSqrt, RoleWeight, GeneralStrength, PickFromTop, BestHeroForRole, BestBan, WasHumansDonePicking, SelectsHero, GetTeamSelectedHeroes, UpdateSelectedHeroes, FillLaneAssignmentTable, Matchups, UnImplementedHeroes, ListPickedHeroes, AllHeroesSelected, BanCycle, PickCycle, UnavailableHeroes, WeakHeroes, HeroLanes, allBotHeroes, humanPick, generalStrength, PICK_FUZZ, BAN_FUZZ, MIN_ROLE_WEIGHT, RoleAssignment
 local ____dota = require(GetScriptDirectory().."/ts_libs/dota/index")
 local GameState = ____dota.GameState
 local HeroPickState = ____dota.HeroPickState
@@ -90,6 +102,8 @@ local CanBeOfflaner = ____role.CanBeOfflaner
 local CanBeMidlaner = ____role.CanBeMidlaner
 local CanBeSupport = ____role.CanBeSupport
 local CanBeSafeLaneCarry = ____role.CanBeSafeLaneCarry
+local ____hero_pos_weights = require(GetScriptDirectory().."/FuncLib/data/hero_pos_weights")
+local GetHeroPositions = ____hero_pos_weights.GetHeroPositions
 function ____exports.PickCaptain()
     if not ____exports.IsHumanPlayerExist() or DotaTime() > -1 then
         if GetCMCaptain() == -1 then
@@ -125,7 +139,7 @@ function BansHero()
     if not IsPlayerBot(GetCMCaptain()) or not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
         return
     end
-    local BannedHero = RandomHero()
+    local BannedHero = BestBan()
     log("%s is banned", BannedHero)
     CMBanHero(BannedHero)
     BanCycle = BanCycle + 1
@@ -135,31 +149,18 @@ function PicksHero()
         return
     end
     local sTeamName = GetTeam() == Team.Radiant and "TEAM_RADIANT" or "TEAM_DIRE"
-    local PickedHero = RandomHero()
+    local PickedHero
     if PickCycle == 1 then
-        while not CanBeOfflaner(PickedHero) do
-            PickedHero = RandomHero()
-        end
+        PickedHero = BestHeroForRole({3}, CanBeOfflaner)
         ____exports.PairsHeroNameNRole[sTeamName][PickedHero] = "offlaner"
-    elseif PickCycle == 2 then
-        while not CanBeSupport(PickedHero) do
-            PickedHero = RandomHero()
-        end
+    elseif PickCycle == 2 or PickCycle == 4 then
+        PickedHero = BestHeroForRole({4, 5}, CanBeSupport)
         ____exports.PairsHeroNameNRole[sTeamName][PickedHero] = "support"
     elseif PickCycle == 3 then
-        while not CanBeMidlaner(PickedHero) do
-            PickedHero = RandomHero()
-        end
+        PickedHero = BestHeroForRole({2}, CanBeMidlaner)
         ____exports.PairsHeroNameNRole[sTeamName][PickedHero] = "midlaner"
-    elseif PickCycle == 4 then
-        while not CanBeSupport(PickedHero) do
-            PickedHero = RandomHero()
-        end
-        ____exports.PairsHeroNameNRole[sTeamName][PickedHero] = "support"
-    elseif PickCycle == 5 then
-        while not CanBeSafeLaneCarry(PickedHero) do
-            PickedHero = RandomHero()
-        end
+    else
+        PickedHero = BestHeroForRole({1}, CanBeSafeLaneCarry)
         ____exports.PairsHeroNameNRole[sTeamName][PickedHero] = "carry"
     end
     log("%s is picked", PickedHero)
@@ -184,16 +185,164 @@ function IsUnavailableHero(name)
 end
 function RandomHero()
     local hero = allBotHeroes[RandomInt(1, #allBotHeroes)]
-    while IsUnavailableHero(hero) or IsCMPickedHero(
+    do
+        local i = 0
+        while i < 1000 and IsTaken(hero) do
+            hero = allBotHeroes[RandomInt(1, #allBotHeroes)]
+            i = i + 1
+        end
+    end
+    return hero
+end
+function IsTaken(hero)
+    return IsUnavailableHero(hero) or IsCMPickedHero(
         GetTeam(),
         hero
     ) or IsCMPickedHero(
         GetOpposingTeam(),
         hero
-    ) or IsCMBannedHero(hero) do
-        hero = allBotHeroes[RandomInt(1, #allBotHeroes)]
+    ) or IsCMBannedHero(hero)
+end
+function IsWeakHero(hero)
+    for ____, h in ipairs(WeakHeroes) do
+        if h == hero then
+            return true
+        end
     end
-    return hero
+    return false
+end
+function PickedHeroesOf(team)
+    local result = {}
+    for ____, h in ipairs(allBotHeroes) do
+        if IsCMPickedHero(team, h) then
+            result[#result + 1] = h
+        end
+    end
+    return result
+end
+function SignedSqrt(x)
+    return x >= 0 and math.sqrt(x) or -math.sqrt(-x)
+end
+function RoleWeight(hero, positions)
+    local weights = GetHeroPositions()[hero]
+    if weights == nil then
+        return 0
+    end
+    local best = 0
+    for ____, pos in ipairs(positions) do
+        local w = weights[pos]
+        if w ~= nil and w > best then
+            best = w
+        end
+    end
+    return best
+end
+function GeneralStrength(hero)
+    local cached = generalStrength[hero]
+    if cached ~= nil then
+        return cached
+    end
+    local sum = 0
+    local count = 0
+    for ____, other in ipairs(allBotHeroes) do
+        if other ~= hero then
+            local adv = Matchups.GetAdvantage(hero, other)
+            if adv ~= 0 then
+                sum = sum + adv
+                count = count + 1
+            end
+        end
+    end
+    local value = count > 0 and sum / count or 0
+    generalStrength[hero] = value
+    return value
+end
+function PickFromTop(scored, weights)
+    if #scored == 0 then
+        return nil
+    end
+    __TS__ArraySort(
+        scored,
+        function(____, a, b) return b.score - a.score end
+    )
+    local roll = RandomInt(1, 100)
+    do
+        local i = 0
+        while i < #weights and i < #scored do
+            roll = roll - weights[i + 1]
+            if roll <= 0 then
+                return scored[i + 1].name
+            end
+            i = i + 1
+        end
+    end
+    return scored[1].name
+end
+function BestHeroForRole(positions, canPlay)
+    local enemies = PickedHeroesOf(GetOpposingTeam())
+    local allies = PickedHeroesOf(GetTeam())
+    local scored = {}
+    local scoredLooseFit = {}
+    for ____, hero in ipairs(allBotHeroes) do
+        if not IsTaken(hero) and not IsWeakHero(hero) and canPlay(hero) then
+            local roleWeight = RoleWeight(hero, positions)
+            local score = (roleWeight - 50) / 5
+            for ____, e in ipairs(enemies) do
+                score = score + SignedSqrt(Matchups.GetAdvantage(hero, e))
+            end
+            for ____, a in ipairs(allies) do
+                if Matchups.IsSynergy(hero, a) then
+                    score = score + 1.5
+                end
+            end
+            score = score + GeneralStrength(hero) / 2
+            if roleWeight >= MIN_ROLE_WEIGHT then
+                scored[#scored + 1] = {name = hero, score = score}
+            else
+                scoredLooseFit[#scoredLooseFit + 1] = {name = hero, score = score}
+            end
+        end
+    end
+    local best = PickFromTop(scored, PICK_FUZZ) or PickFromTop(scoredLooseFit, PICK_FUZZ)
+    if best ~= nil then
+        log(
+            "CM pick for positions %s: %s",
+            table.concat(positions, "/"),
+            best
+        )
+        return best
+    end
+    do
+        local i = 0
+        while i < 300 do
+            local hero = RandomHero()
+            if canPlay(hero) then
+                return hero
+            end
+            i = i + 1
+        end
+    end
+    return RandomHero()
+end
+function BestBan()
+    local enemies = PickedHeroesOf(GetOpposingTeam())
+    local allies = PickedHeroesOf(GetTeam())
+    local scored = {}
+    for ____, hero in ipairs(allBotHeroes) do
+        if not IsTaken(hero) then
+            local score = GeneralStrength(hero)
+            for ____, a in ipairs(allies) do
+                score = score + SignedSqrt(Matchups.GetAdvantage(hero, a))
+            end
+            for ____, e in ipairs(enemies) do
+                if Matchups.IsSynergy(hero, e) then
+                    score = score + 1.5
+                end
+            end
+            scored[#scored + 1] = {name = hero, score = score}
+        end
+    end
+    return PickFromTop(scored, BAN_FUZZ) or RandomHero()
 end
 function WasHumansDonePicking()
     local Players = GetTeamPlayers(GetTeam())
@@ -315,6 +464,7 @@ function FillLaneAssignmentTable()
         end
     end
 end
+Matchups = require(GetScriptDirectory().."/FuncLib/data/matchups_data")
 UnImplementedHeroes = {}
 ListPickedHeroes = {}
 AllHeroesSelected = false
@@ -325,6 +475,26 @@ local Min = 15
 local Max = 20
 local CMdebugMode = true
 UnavailableHeroes = {"npc_dota_hero_techies"}
+WeakHeroes = {
+    "npc_dota_hero_chen",
+    "npc_dota_hero_ancient_apparition",
+    "npc_dota_hero_tinker",
+    "npc_dota_hero_pangolier",
+    "npc_dota_hero_tusk",
+    "npc_dota_hero_morphling",
+    "npc_dota_hero_visage",
+    "npc_dota_hero_void_spirit",
+    "npc_dota_hero_ember_spirit",
+    "npc_dota_hero_rubick",
+    "npc_dota_hero_brewmaster",
+    "npc_dota_hero_puck",
+    "npc_dota_hero_marci",
+    "npc_dota_hero_lone_druid",
+    "npc_dota_hero_primal_beast",
+    "npc_dota_hero_dark_willow",
+    "npc_dota_hero_hoodwink",
+    "npc_dota_hero_wisp"
+}
 HeroLanes = {TEAM_RADIANT = {
     [1] = Lane.Bot,
     [2] = Lane.Mid,
@@ -376,6 +546,16 @@ function ____exports.AddToList()
         end
     end
 end
+generalStrength = {}
+PICK_FUZZ = {50, 30, 20}
+BAN_FUZZ = {
+    35,
+    25,
+    20,
+    12,
+    8
+}
+MIN_ROLE_WEIGHT = 40
 RoleAssignment = {TEAM_RADIANT = {}, TEAM_DIRE = {}}
 function ____exports.CMLaneAssignment(roleAssign)
     local sTeamName = GetTeam() == Team.Radiant and "TEAM_RADIANT" or "TEAM_DIRE"
