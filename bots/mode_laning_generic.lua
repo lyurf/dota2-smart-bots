@@ -31,6 +31,11 @@ local isChangePosMessageDone     = false
 
 if Utils.BuggyHeroesDueToValveTooLazy[botName] then local_mode_laning_generic = dofile( GetScriptDirectory().."/FuncLib/systems/override_generic/mode_laning_generic" ) end
 
+-- Smart Bots: our own laning (last hits, getting ready for the next last hit, denies, support
+-- discipline) for every hero instead of Valve's built-in laning, which only reached 22-33 last
+-- hits at 10:00 for core bots in tests. Set Customize.Smart_Laning = false to use Valve's laning.
+local bSmartLaning = not (Fu.Customize and Fu.Customize.Smart_Laning == false)
+
 function GetDesire()
 	if ShouldSkipBotThink(GetBot()) then return 0 end
 	return GetDesireRaw()
@@ -149,12 +154,12 @@ function GetDesireRaw()
 	-- 	return 0.2
 	-- end
 
-	if local_mode_laning_generic or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5)) then
+	if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5)) then
 		-- last hit priority during early laning
 		if currentTime <= 9 * 60 then
 			local hitCreep, _ = GetBestLastHitCreep(nEnemyCreeps)
 			if Fu.IsValid(hitCreep) then
-				if Fu.GetPosition(bot) <= 2 or not Fu.IsThereNonSelfCoreNearby(700) -- this is for e.g lone druid bear as pos1-2 with core LD nearby to do last hit.
+				if Fu.IsCore(bot) or not Fu.IsThereCoreNearby(1300) -- supports leave last hits to a core in the same lane
 				then
 					return 0.6
 				end
@@ -270,6 +275,27 @@ function GetBestDenyCreep(hCreepList)
 	return bestDeny
 end
 
+-- Smart Bots: enemy creep that will soon be killable (low HP and being hit by our creeps),
+-- not under the enemy tower. Returns the lowest-HP one.
+function GetCreepToPrepare(hCreepList, nEnemyTowers)
+	local best, bestHP = nil, math.huge
+	for _, creep in pairs(hCreepList) do
+		if Fu.IsValid(creep) and Fu.CanBeAttacked(creep) then
+			local hp = creep:GetHealth()
+			local underTower = Fu.IsValidBuilding(nEnemyTowers and nEnemyTowers[1])
+				and GetUnitToUnitDistance(creep, nEnemyTowers[1]) < 750
+			if not underTower
+			and hp <= attackDamage * 2.2
+			and GetUnitToUnitDistance(bot, creep) <= botAttackRange + 450
+			and hp < bestHP
+			then
+				best, bestHP = creep, hp
+			end
+		end
+	end
+	return best
+end
+
 local fNextMovementTime = 0
 
 -- Drop tower aggro by attacking a nearby ally creep
@@ -286,19 +312,7 @@ local function DropTowerAggro(nAllyCreepList)
 	return false
 end
 
--- Get lane partner (another hero assigned to same lane)
-local function GetLanePartner()
-	for i = 1, #GetTeamPlayers(GetTeam()) do
-		local member = GetTeamMember(i)
-		if member ~= nil and member ~= bot and Fu.IsValidHero(member)
-		and member:GetAssignedLane() == botAssignedLane then
-			return member
-		end
-	end
-	return nil
-end
-
-if local_mode_laning_generic or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5)) then
+if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5)) then
 	function Think()
 		local nEnemyTowers = bot:GetNearbyTowers(1200, true)
 
@@ -332,12 +346,8 @@ if local_mode_laning_generic or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5))
 				end
 			end
 
-			-- Lane partner awareness: supports yield last hits to cores
-			local partner = GetLanePartner()
-			if partner == nil
-			or Fu.IsCore(bot)
-			or (not Fu.IsCore(bot) and Fu.IsCore(partner)
-				and (not partner:IsAlive() or GetUnitToUnitDistance(partner, hitCreep) > partner:GetAttackRange() + 400))
+			-- Lane partner awareness: supports yield last hits to a core in the same lane
+			if Fu.IsCore(bot) or not Fu.IsThereCoreNearby(1300)
 			then
 				local distToCreep = GetUnitToUnitDistance(bot, hitCreep)
 				if distToCreep > botAttackRange then
@@ -362,6 +372,22 @@ if local_mode_laning_generic or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5))
 			bot:SetTarget(denyCreep)
 			bot:Action_AttackUnit(denyCreep, true)
 			return
+		end
+
+		-- Smart Bots: get ready for the next last hit - stand in attack range of the enemy creep
+		-- that is about to die, instead of walking around until it is already killable.
+		if Fu.IsCore(bot) or not Fu.IsThereCoreNearby(1300) then
+			local prepCreep = GetCreepToPrepare(nEnemyCreeps, nEnemyTowers)
+			if Fu.IsValid(prepCreep) then
+				local standDist = math.max(botAttackRange - 60, 100)
+				local standLoc = Fu.GetXUnitsTowardsLocation2(prepCreep:GetLocation(), bot:GetLocation(), standDist)
+				if GetUnitToLocationDistance(bot, standLoc) > 60 then
+					bot:Action_MoveToLocation(standLoc)
+				else
+					bot:Action_MoveToLocation(bot:GetLocation()) -- hold position, ready to strike
+				end
+				return
+			end
 		end
 
 		if local_mode_laning_generic then

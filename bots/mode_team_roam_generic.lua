@@ -463,11 +463,23 @@ function GetDesireHelper()
 end
 
 function X.GetLastHitCreep()
+	-- Smart Bots: supports leave last hits to an allied core in the same lane. The old check
+	-- used GetTeamMember(), which only sees the bot itself in per-bot sandboxes, so supports
+	-- never noticed their core and took its farm (pos 4 with 33 last hits vs pos 3 with 9).
+	local nCoreShareRadius = DotaTime() < 12 * 60 and 1300 or 800
 	if Fu.IsRetreating(bot)
-	or (not Fu.IsCore(bot) and Fu.IsThereCoreNearby(800))
+	or (not Fu.IsCore(bot) and Fu.IsThereNonSelfCoreNearby(nCoreShareRadius))
 	or Fu.IsInTeamFight(bot, 1200)
 	then
 		return nil
+	end
+
+	-- Smart Bots: count Quelling Blade / Battle Fury bonus damage against creeps
+	local nLastHitDamage = bot:GetAttackDamage() - 1
+	if bot:GetItemSlotType(bot:FindItemSlot("item_quelling_blade")) == ITEM_SLOT_TYPE_MAIN then
+		nLastHitDamage = nLastHitDamage + ((bot:GetAttackRange() > 310) and 4 or 8)
+	elseif bot:FindItemSlot("item_bfury") >= 0 then
+		nLastHitDamage = nLastHitDamage + 15
 	end
 
 	local nEnemyTowers = bot:GetNearbyTowers(1000, true)
@@ -480,7 +492,7 @@ function X.GetLastHitCreep()
 		and not Fu.IsTormentor(creep)
 		then
 			local nDelay = Fu.GetAttackProDelayTime(bot, creep)
-			if Fu.WillKillTarget(creep, bot:GetAttackDamage()-1, DAMAGE_TYPE_PHYSICAL, nDelay)
+			if Fu.WillKillTarget(creep, nLastHitDamage, DAMAGE_TYPE_PHYSICAL, nDelay)
 			and (#nEnemyTowers == 0 or (Fu.IsValidBuilding(nEnemyTowers[1]) and not Fu.IsInRange(creep, nEnemyTowers[1], 750)))
 			then
 				local nInRangeAlly = Fu.GetAlliesNearLoc(creep:GetLocation(), 1000)

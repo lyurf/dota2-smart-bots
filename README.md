@@ -16,6 +16,9 @@ stats from the scripts, no cheats, no difficulty voting, no online requests. Ins
 - **Team pushing against humans.** Bot teams coordinate pushes, siege after a won fight, finish lanes
   after barracks fall and counter-push after a successful defense. In the original this only worked
   in all-bot games.
+- **Smarter laning.** Every hero uses Smart Bots laning instead of Valve's built-in one: the bot stands
+  ready next to an enemy creep that is about to die, denies, and supports leave last hits to their core
+  (in the original, supports took the core's farm). `Smart_Laning = false` switches back.
 - **Less over-farming.** Bots leave the jungle and push when 2 or fewer enemies are alive.
 - **Human-like reaction time.** Configurable delay before casting spells and items when an enemy
   appears, and between casts (`Reaction_Delay` in `Customize/general.lua`).

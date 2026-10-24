@@ -79,14 +79,18 @@ function Fu.IsThereNonSelfCoreNearby(nRadius)
     return false
 end
 
+-- Smart Bots: use the allied hero list instead of GetTeamMember(), which only returns the bot
+-- itself in per-bot sandboxes (so this always returned false and supports took cores' farm).
 function Fu.IsThereCoreNearby(nRadius)
-	for i = 1, #GetTeamPlayers( GetTeam() )
+	local selfBot = GetBot()
+	for _, allyHero in pairs(GetUnitList(UNIT_LIST_ALLIED_HEROES))
 	do
-		local allyHero = GetTeamMember(i)
 		if allyHero ~= nil
-		and allyHero ~= GetBot()
+		and allyHero ~= selfBot
+		and Fu.IsValidHero(allyHero)
+		and not allyHero:IsIllusion()
 		and Fu.IsCore(allyHero)
-		and Fu.IsInRange(GetBot(), allyHero, nRadius)
+		and Fu.IsInRange(selfBot, allyHero, nRadius)
 		then
 			return true
 		end

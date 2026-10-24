@@ -7,10 +7,14 @@ function Fu.SetUserHeroInit( nAbilityBuildList, nTalentBuildList, sBuyList, sSel
 	local bot = GetBot()
 	local botName = bot:GetUnitName()
 	local sBotDir, tBotSet = "game/Customize/hero/" .. string.gsub(botName, "npc_dota_hero_", ""), nil
-	local status, _ = xpcall(function() tBotSet = require( sBotDir ) end, function( err ) log( '[WARN] When loading customized game file: %s', err ) end )
+	-- Smart Bots: pcall instead of xpcall; a missing optional file made the engine print
+	-- "Script Runtime Error: error in error handling" for every bot at game start.
+	local status, res = pcall(require, sBotDir)
+	tBotSet = status and res or nil
 	if not (status and tBotSet) then
 		sBotDir = GetScriptDirectory() .. "/Customize/hero/" .. string.gsub(botName, "npc_dota_hero_", "")
-		status, _ = xpcall(function() tBotSet = require( sBotDir ) end, function( err ) log( '[WARN] When loading customized file: %s', err ) end )
+		status, res = pcall(require, sBotDir)
+		tBotSet = status and res or nil
 	end
 	if status and tBotSet and tBotSet.Enable then
 		nAbilityBuildList = tBotSet.AbilityUpgrade

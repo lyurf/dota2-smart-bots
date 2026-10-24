@@ -17,6 +17,7 @@ interface CustomizeSettings {
     Dire_Team_Name: string;
     Push_Frequency: number;
     ThinkLess: number;
+    Smart_Laning?: boolean;
 }
 declare const Customize: CustomizeSettings;
 export = Customize;

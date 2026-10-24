@@ -111,6 +111,10 @@ Customize.Push_Frequency = 3
 -- This won't be very effective for FPS improvement because Valve has a lot of compute on their side that your PC have to handle for Local Hosting.
 Customize.ThinkLess = 0;
 
+-- Smart laning for every hero: careful last hits, getting ready for the next last hit, denies,
+-- supports leaving farm to their core. Set to false to use Valve's built-in laning instead.
+Customize.Smart_Laning = true
+
 -- Human-like reaction delay for bots' spells and items.
 -- When a new enemy hero shows up nearby, the bot waits Min..Max seconds before casting.
 -- After finishing a cast, it waits Between_Min..Between_Max seconds before the next one.
