@@ -5,7 +5,7 @@
 bots group up, push after won fights, stop over-farming and react like humans instead of instantly.
 
 The goal is bots that play like smart Dota 2 players. **Completely fair:** no bonus gold, experience or
-stats, no cheats, no difficulty voting, no online requests. Install, start a lobby and play.
+stats from the scripts, no cheats, no difficulty voting, no online requests. Install, start a lobby and play.
 
 > Bots installed correctly have names ending with **`.HATS`**.
 
@@ -45,9 +45,10 @@ comes from Open Hyper AI.
 3. Copy the `bots` folder from the archive into
    `...\steamapps\common\dota 2 beta\game\dota\scripts\vscripts\`.
 4. In Dota 2 create a **Custom Lobby**: Server Location **Local Host**, bot script **Local Dev Script**,
-   bot difficulty **Hard**.
-   Do not use **Unfair**: Valve gives Unfair enemy bots +25% gold and experience, which breaks fair play.
-   Smart Bots scripts do not read the difficulty setting themselves.
+   bot difficulty **Unfair**.
+   Recommended for a real challenge. Note that this is Valve's own setting: Unfair enemy bots get
+   +25% gold and experience and Valve's built-in parts of the bot AI play sharper. For a fully fair
+   game choose **Hard** instead. Smart Bots scripts do not read the difficulty setting themselves.
 
 ### Your settings
 
