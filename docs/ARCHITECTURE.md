@@ -4,6 +4,8 @@
 > and `Install-to-vscript/` folders, the HTTP layer (`ts_libs/utils/http_utils`) and GPT chat were removed.
 > Data the core still needs moved to `FuncLib/data/hero_names_locale.lua` (was `FretBots/HeroNames.lua`) and
 > `FuncLib/data/matchups_data.lua` (was `FretBots/matchups_data.lua`). Sections about FretBots/Buff are historical.
+> Neutral items for bots now come from the optional fair script `bots/FairNeutrals.lua` (pool: `FuncLib/data/neutral_items.lua`, moved
+> from `FretBots/SettingsNeutralItemTable.lua`). When Valve changes the neutral pool, update that one file.
 
 
 This document is the single source of truth for understanding, maintaining, and updating the dota2bot-OpenHyperAI codebase. It is designed so that a developer (or AI assistant) can quickly make targeted updates without re-scanning the entire repository.

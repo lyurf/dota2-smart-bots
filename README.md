@@ -24,6 +24,8 @@ stats, no cheats, no difficulty voting, no online requests. Install, start a lob
   `vscripts/game/Customize/general.lua` overrides everything.
 - **No bonus modes.** FretBots and Buff mode (bonus gold/XP/stats, voting) are removed, together with
   GPT chat and every network request. Bot chat is local.
+- **Fair neutral items.** Optional script that crafts neutrals for bots by the players' rules
+  (Madstone from camps, same tier timings), instead of FretBots handing them out as a bonus.
 
 Everything else (127 heroes, item builds, all game modes, `!pos` / `!pick` / `!ban` commands)
 comes from Open Hyper AI.
@@ -51,6 +53,22 @@ comes from Open Hyper AI.
 
 Copy `bots\Customize` to `...\vscripts\game\Customize` and edit `general.lua` there.
 That copy survives updates of the bots folder.
+
+### Neutral items (recommended)
+
+Valve does not let bots craft neutral items. Smart Bots includes a small server script that crafts them
+for bots **by the same rules as for players** and gives nothing else:
+
+- bots earn Madstone only by killing neutral creeps (plus a share when an ally clears a camp), from minute 5;
+- a tier is crafted only when it is unlocked by game time (5 / 15 / 25 / 35 / 60 min) and the bot has
+  collected enough Madstone;
+- like a player, the bot picks from 3 random artifacts and 3 random enchantments of that tier.
+
+To enable it, check **Enable Cheats** in the lobby, then during hero selection open the console and run:
+```
+sv_cheats 1; script_reload_code bots/FairNeutrals
+```
+Madstone per camp is approximated from creep kills, so timings are close to, not exactly, a player's.
 
 ### In-game commands
 
