@@ -90,6 +90,18 @@ function GetDesireRaw()
 
 	if currentTime < 0 then return BOT_ACTION_DESIRE_NONE end
 
+	-- Smart Bots: lane report in the console at 5:00 and 10:00 (last hits / denies / level),
+	-- so laning changes can be compared between test games.
+	for _, reportMin in ipairs({5, 10}) do
+		if currentTime >= reportMin * 60 and not bot['_laneReport'..reportMin] then
+			bot['_laneReport'..reportMin] = true
+			local okLH, lh = pcall(function() return bot:GetLastHits() end)
+			local okDN, dn = pcall(function() return bot:GetDenies() end)
+			print(string.format('[LANE %d:00] %s pos %d: LH %s / DN %s, level %d, nw %d', reportMin, botName, Fu.GetPosition(bot),
+				okLH and tostring(lh) or '?', okDN and tostring(dn) or '?', bot:GetLevel(), bot:GetNetWorth()))
+		end
+	end
+
 	-- if DotaTime() > 20 and DotaTime() - skipLaningState.lastCheckTime < skipLaningState.checkGap then
 	-- 	if skipLaningState.count > 6 then
 	-- 		print('[WARN] Bot ' ..botName.. ' switching modes too often, now stop it for laning to avoid conflicts.')

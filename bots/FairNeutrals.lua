@@ -21,15 +21,16 @@ How to start (once per game, during hero selection or later):
     sv_cheats 1; script_reload_code bots/FairNeutrals
 --]]
 
-require('bots/FuncLib/systems/log')
+-- Always print (the shared log() only prints in debug mode).
+local function report(fmt, ...) print(string.format(fmt, ...)) end
 
 if not GameRules or GameRules:State_Get() < DOTA_GAMERULES_STATE_HERO_SELECTION then
-	log('[FairNeutrals] Start a lobby game and run this after entering hero selection.')
+	report('[FairNeutrals] Start a lobby game and run this after entering hero selection.')
 	return
 end
 
 if FairNeutrals ~= nil and FairNeutrals.started then
-	log('[FairNeutrals] Already running for this game.')
+	report('[FairNeutrals] Already running for this game.')
 	return
 end
 
@@ -194,7 +195,7 @@ local function Craft(pid, tier)
 	GiveItem(hero, artifact.name)
 	if enchant then GiveItem(hero, enchant.name) end
 	b.tier = tier
-	log('[FairNeutrals] %s (pos %d) crafted tier %d: %s + %s at %.1f min, madstone %.1f',
+	report('[FairNeutrals] %s (pos %d) crafted tier %d: %s + %s at %.1f min, madstone %.1f',
 		hero:GetUnitName(), pos, tier, artifact.name, enchant and enchant.name or '-', GameMinutes(), b.madstone)
 end
 
@@ -251,4 +252,4 @@ local thinker = SpawnEntityFromTableSynchronous('info_target', { targetname = 's
 thinker:SetThink('Think', FairNeutrals, 'fair_neutrals', THINK_INTERVAL)
 
 GameRules:SendCustomMessage('Smart Bots: fair neutral items enabled. Bots craft neutrals by the same rules as players.', 0, 0)
-log('[FairNeutrals] Started.')
+report('[FairNeutrals] Started.')
