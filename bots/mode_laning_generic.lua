@@ -506,8 +506,14 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 		local nLongestAttackRange = math.max(botAttackRange, 250, nFurthestEnemyAttackRange)
 		-- Smart Bots: supports stand close enough to threaten the enemy laners instead of hiding
 		-- behind the wave (they keep their own attack range, not the enemy's).
-		if not Fu.IsCore(bot) and Fu.GetHP(bot) > 0.5 then
+		-- ...but only when the lane is not lost in numbers; outnumbered laners stand further back
+		-- (last game the safe-lane carry and support died 9 times before 7:00 from full HP).
+		local nLaneAllies = #(bot:GetNearbyHeroes(1200, false, BOT_MODE_NONE) or {})
+		local nLaneEnemies = #(bot:GetNearbyHeroes(1200, true, BOT_MODE_NONE) or {})
+		if not Fu.IsCore(bot) and Fu.GetHP(bot) > 0.5 and nLaneEnemies <= nLaneAllies then
 			nLongestAttackRange = math.max(botAttackRange * 0.8, 200)
+		elseif nLaneEnemies > nLaneAllies then
+			nLongestAttackRange = nLongestAttackRange + 150
 		end
 
 		local target_loc = GetLaneFrontLocation(GetTeam(), botAssignedLane, -nLongestAttackRange)

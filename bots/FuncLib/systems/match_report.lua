@@ -84,6 +84,11 @@ end
 
 function X.Update(bot, position)
 	if bot == nil or not bot:IsHero() or bot:IsIllusion() then return end
+	-- Arc Warden's Tempest Double and Meepo clones are not separate players: skip them
+	-- (otherwise every report and death line is printed twice).
+	if bot:HasModifier('modifier_arc_warden_tempest_double') then return end
+	local okClone, isClone = pcall(function() return bot.IsMeepoClone ~= nil and bot:IsMeepoClone() end)
+	if okClone and isClone then return end
 	local ok, err = pcall(function()
 		local now = DotaTime()
 		local s = bot._smartReport

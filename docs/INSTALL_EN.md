@@ -159,8 +159,8 @@ So the command is needed in any case.
    ```
    sv_cheats 1; script_reload_code bots/SmartBots
    ```
-3. The chat shows *"Smart Bots: neutral items enabled"* and *"Smart Bots 3.2: server scripts started"*,
-   and the console shows `[SmartBots] Version 3.2. Server scripts started.` The number is the bot version
+3. The chat shows *"Smart Bots: neutral items enabled"* and *"Smart Bots 3.3: server scripts started"*,
+   and the console shows `[SmartBots] Version 3.3. Server scripts started.` The number is the bot version
    of the lobby host. If it is lower than on GitHub, download the ZIP again (step 12).
 
 Enter the command **every game**.
@@ -177,7 +177,7 @@ After restarting Dota 2, just press **F11** during hero selection; no need to op
 - **Bot names end with `.HATS`**, e.g. `TyMaH.HATS`, `Nil.HATS`.
   Names ending with `.OHA` mean Open Hyper AI is loaded (see step 3). Random names without a tag mean an
   error in the settings file (see step 6) or the bots did not load (see the section below).
-- Before the horn a bot on your team writes the welcome line **"Welcome to Smart Bots (HATS) 3.2"**
+- Before the horn a bot on your team writes the welcome line **"Welcome to Smart Bots (HATS) 3.3"**
   (in the chat language you chose).
 - With the server scripts running: console lines `[FairNeutrals] ... got tier 1 ...` around minute 5.
 - At 5:00 and 10:00 every bot writes a lane report to the console:

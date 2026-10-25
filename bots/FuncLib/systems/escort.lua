@@ -87,6 +87,16 @@ local JOIN_POWER_RATIO = 0.75
 -- Leave a running fight only when it turned clearly bad.
 local LEAVE_POWER_RATIO = 0.55
 
+local tEnemyTowerIds = { TOWER_TOP_1, TOWER_TOP_2, TOWER_TOP_3, TOWER_MID_1, TOWER_MID_2, TOWER_MID_3,
+	TOWER_BOT_1, TOWER_BOT_2, TOWER_BOT_3, TOWER_BASE_1, TOWER_BASE_2 }
+local function IsNearEnemyTower(loc)
+	for _, id in ipairs(tEnemyTowerIds) do
+		local tower = GetTower(GetOpposingTeam(), id)
+		if tower ~= nil and tower:IsAlive() and GetUnitToLocationDistance(tower, loc) < 900 then return true end
+	end
+	return false
+end
+
 local function IsSupport(bot)
 	local pos = Fu.GetPosition(bot)
 	return pos == 4 or pos == 5
@@ -110,8 +120,15 @@ local function FindHumanFight(bot)
 			local enemies = VisibleEnemiesNear(human:GetLocation(), FIGHT_RADIUS)
 			if #enemies > 0 then
 				local target = human:GetAttackTarget()
-				local fighting = (target ~= nil and not target:IsNull() and target:IsHero() and target:GetTeam() ~= bot:GetTeam())
-					or human:WasRecentlyDamagedByAnyHero(2.0)
+				local hitsHero = target ~= nil and not target:IsNull() and target:IsHero() and target:GetTeam() ~= bot:GetTeam()
+				local fighting = hitsHero or human:WasRecentlyDamagedByAnyHero(2.0)
+				-- Laning phase: normal lane trades are not a reason to leave the lane. Join only a real
+				-- kill chance (his target below 50% HP) or when the human is being ganked (below 60% HP).
+				if fighting and DotaTime() < 10 * 60 then
+					local killChance = hitsHero and Fu.GetHP(target) < 0.5
+					local beingGanked = human:WasRecentlyDamagedByAnyHero(2.0) and Fu.GetHP(human) < 0.6
+					fighting = killChance or beingGanked
+				end
 				-- After the laning phase: a healthy human walking into the enemy half next to visible
 				-- enemy heroes is going for a gank, so supports come before the fight starts.
 				if not fighting and DotaTime() > 10 * 60 and Fu.GetHP(human) > 0.5 then
@@ -178,6 +195,7 @@ function X.GetDesire(bot)
 		if now - e.startTime > (e.byPing and PING_FOLLOW_SEC or MAX_ESCORT_SEC) then Stop(bot, 'time is up') return 0 end
 		if e.human == nil or e.human:IsNull() or not e.human:IsAlive() then Stop(bot, 'he died') return 0 end
 		local center = e.byPing and e.pingLoc or e.human:GetLocation()
+		if DotaTime() < 10 * 60 and IsNearEnemyTower(center) then Stop(bot, 'fight moved under their tower') return 0 end
 		local enemies = VisibleEnemiesNear(center, FIGHT_RADIUS)
 		if #enemies > 0 then
 			e.lastEnemySeen = now
