@@ -1,5 +1,7 @@
 # Smart Bots (HATS) — Dota 2 Bot Scripts
 
+🇬🇧 **English** | 🇷🇺 [Русский](README.ru.md)
+
 **Bots that win by playing smarter.** Smart Bots is a fork of
 [Open Hyper AI](https://github.com/forest0xia/dota2bot-OpenHyperAI) focused on team strategy:
 bots group up, push after won fights, stop over-farming and react like humans instead of instantly.
@@ -20,7 +22,8 @@ Install, start a lobby and play.
   in all-bot games.
 - **Smarter laning.** Every hero uses Smart Bots laning instead of Valve's built-in one: the bot stands
   ready next to an enemy creep that is about to die, denies, and supports leave last hits to their core
-  (in the original, supports took the core's farm). Supports stand forward and trade hits with the
+  (in the original, supports took the core's farm). The bot stays in lane after a trade while above 60% HP
+  and does not walk under the enemy tower early in the game. Supports stand forward and trade hits with the
   enemy laners, everyone steps back when creeps pull aggro. `Smart_Laning = false` switches back.
 - **Vision.** Supports actually buy observer wards (pos 5 every ward in stock, pos 4 one when 2+ are in stock).
 - **Less over-farming.** Bots leave the jungle and push when 2 or fewer enemies are alive.
@@ -30,15 +33,17 @@ Install, start a lobby and play.
   counters). In Captains Mode a bot captain bans and picks by role fit, counters and synergy
   instead of random heroes.
 - **Hunting the enemy carry.** After the laning phase, when the enemy's most farmed hero is seen
-  alone away from his towers, the 3–4 closest healthy bots go and kill him together. In lane,
+  alone away from his towers, the 3–4 closest healthy bots go and kill him together, smoked on the way. In lane,
   bots harass the enemy carry/mid first.
+- **After Roshan, attack.** With the Aegis the whole team groups on one lane and pushes while it lasts.
 - **Bots help their human teammates.** When you start a fight or walk into the enemy half next to
   enemy heroes, allied support bots (up to 4500 away) and nearby bots come and hit your target.
   Ping next to yourself (Alt + click) and supports come; pings far from the pinger are treated as
   warnings and ignored. Fights are judged by hero strength, not headcount.
 - **Cores farm.** The carry and mid keep farming between fights whatever `Push_Frequency` is set to;
   everyone farms less and takes objectives when the team is 2+ heroes up.
-- **Smarter defaults.** Balanced push/farm (`Push_Frequency = 2`) and full thinking (`ThinkLess = 0`).
+- **Smarter defaults.** Balanced push/farm (`Push_Frequency = 2`), full thinking (`ThinkLess = 0`),
+  Russian chat language.
 - **Console reports for testing.** Lane stats at 5 and 10 min, game stats with time spent per mode
   at 15–50 min, and a line for every bot death (mode, HP before, enemies and allies near).
 - **One settings file.** All modes read settings through the same loader, so a single
@@ -96,8 +101,8 @@ the log is written to `dota 2 beta\game\dota\console.log`.
 
 ### In-game commands
 
-- Chat language of the bots: type `en`, `ru`, `zh` or `ja` in chat during hero selection,
-  or `!sp ru` at any time.
+- Chat language of the bots (Russian by default): type `en`, `ru`, `zh` or `ja` in chat during hero
+  selection, or `!sp en` at any time.
 - `!pos 2` — swap your role with the bot playing position 2. `!3pos 5` — move the 3rd bot to position 5.
 - `!pick sniper` / `!ban zuus` during hero selection (not in Captains Mode).
 
