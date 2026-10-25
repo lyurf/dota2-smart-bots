@@ -23,7 +23,7 @@ Dota2Teams.maxTeamSize = 12 -- e.g. for 12 v 12
 -- Higher in the list = picked more often.
 local BotNames = {
     "TyMaH",
-    "sah1b",
+    "Sah1b",
     "Nil",
     "Lexicon",
     "MishaART",
