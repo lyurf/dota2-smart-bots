@@ -288,7 +288,7 @@ function GetCreepToPrepare(hCreepList, nEnemyTowers)
 		if Fu.IsValid(creep) and Fu.CanBeAttacked(creep) then
 			local hp = creep:GetHealth()
 			local underTower = Fu.IsValidBuilding(nEnemyTowers and nEnemyTowers[1])
-				and GetUnitToUnitDistance(creep, nEnemyTowers[1]) < 750
+				and GetUnitToUnitDistance(creep, nEnemyTowers[1]) < 900
 			if not underTower
 			and hp <= attackDamage * 2.2
 			and GetUnitToUnitDistance(bot, creep) <= botAttackRange + 450
@@ -303,6 +303,30 @@ end
 
 local fNextMovementTime = 0
 local fNextHarassTime = 0
+
+-- Smart Bots: keep a laning position out of enemy tower range. When our wave pushes into
+-- their tower, the lane front is under the tower; a player waits outside it instead.
+local ENEMY_TOWER_SAFE_DIST = 950
+local tEnemyTowerIds = { TOWER_TOP_1, TOWER_TOP_2, TOWER_TOP_3, TOWER_MID_1, TOWER_MID_2, TOWER_MID_3,
+	TOWER_BOT_1, TOWER_BOT_2, TOWER_BOT_3, TOWER_BASE_1, TOWER_BASE_2 }
+local function KeepAwayFromEnemyTowers(vLoc)
+	for _, id in ipairs(tEnemyTowerIds) do
+		local tower = GetTower(GetOpposingTeam(), id)
+		if tower ~= nil and tower:IsAlive() and GetUnitToLocationDistance(tower, vLoc) < ENEMY_TOWER_SAFE_DIST then
+			return Fu.AdjustLocationWithOffsetTowardsFountain(tower:GetLocation(), ENEMY_TOWER_SAFE_DIST)
+		end
+	end
+	return vLoc
+end
+
+-- Ally lane creeps close enough to an enemy tower to take its shots.
+local function CountAllyCreepsTankingTower(tower)
+	local n = 0
+	for _, creep in pairs(nAllyCreeps or {}) do
+		if Fu.IsValid(creep) and GetUnitToUnitDistance(creep, tower) < 750 then n = n + 1 end
+	end
+	return n
+end
 
 -- Drop tower aggro by attacking a nearby ally creep
 local function DropTowerAggro(nAllyCreepList)
@@ -328,7 +352,8 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 		-- Back off from enemy tower if too close without enough creeps tanking
 		if Fu.IsValidBuilding(nEnemyTowers[1]) then
 			local distFromTower = GetUnitToUnitDistance(bot, nEnemyTowers[1])
-			if distFromTower < 800 and #nEnemyCreeps < 3 then
+			-- Smart Bots: what matters is how many of OUR creeps take the tower's shots
+			if distFromTower < 850 and CountAllyCreepsTankingTower(nEnemyTowers[1]) < 3 then
 				if DotaTime() >= fNextMovementTime then
 					bot:Action_MoveToLocation(Fu.VectorAway(bot:GetLocation(), nEnemyTowers[1]:GetLocation(), 950) + RandomVector(75))
 					fNextMovementTime = DotaTime() + RandomFloat(1, 3)
@@ -414,10 +439,13 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 			return
 		end
 
-		-- Opportunistic tower hit when siege creep is tanking
-		if Fu.IsValidBuilding(nEnemyTowers[1]) and Fu.CanBeAttacked(nEnemyTowers[1])
+		-- Opportunistic tower hit when siege creep is tanking.
+		-- Smart Bots: never in the laning phase - early tower hits only get laners killed
+		-- (the push mode takes towers when the team is ready).
+		if not Fu.IsInLaningPhase() and DotaTime() > 10 * 60
+		and Fu.IsValidBuilding(nEnemyTowers[1]) and Fu.CanBeAttacked(nEnemyTowers[1])
 		and Fu.IsValid(nEnemyTowers[1]:GetAttackTarget()) and nEnemyTowers[1]:GetAttackTarget():IsCreep() then
-			if #nAllyCreeps >= 3 then
+			if CountAllyCreepsTankingTower(nEnemyTowers[1]) >= 3 and #nInRangeEnemy == 0 then
 				bot:Action_AttackUnit(nEnemyTowers[1], true)
 				return
 			end
@@ -428,9 +456,13 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 		-- not stand in the creep wave and keep the aggro. Prefer the lowest-HP enemy in range, the enemy carry/mid first.
 		if DotaTime() >= fNextHarassTime then
 			local bIsCore = Fu.IsCore(bot)
-			local fMinHP = bIsCore and 0.6 or 0.45
+			local fMinHP = bIsCore and 0.65 or 0.55
 			local nExtraRange = bIsCore and 50 or 200
-			if Fu.GetHP(bot) > fMinHP then
+			-- Smart Bots: no trading when outnumbered or when standing near their tower
+			local nAlliesHere = #(bot:GetNearbyHeroes(1200, false, BOT_MODE_NONE) or {})
+			local nEnemiesHere = #(bot:GetNearbyHeroes(1200, true, BOT_MODE_NONE) or {})
+			local bNearTower = Fu.IsValidBuilding(nEnemyTowers[1]) and GetUnitToUnitDistance(bot, nEnemyTowers[1]) < 1000
+			if Fu.GetHP(bot) > fMinHP and nEnemiesHere <= nAlliesHere and not bNearTower then
 				local target, targetHP = nil, math.huge
 				pcall(EnemyRoles.UpdateEnemyHeroPositions)
 				for _, enemy in pairs(nInRangeEnemy) do
@@ -438,7 +470,7 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 					and Fu.CanBeAttacked(enemy)
 					and not Fu.IsSuspiciousIllusion(enemy)
 					and Fu.IsInRange(bot, enemy, botAttackRange + nExtraRange)
-					and not (Fu.IsValidBuilding(nEnemyTowers[1]) and GetUnitToUnitDistance(enemy, nEnemyTowers[1]) < 800)
+					and not (Fu.IsValidBuilding(nEnemyTowers[1]) and GetUnitToUnitDistance(enemy, nEnemyTowers[1]) < 1000)
 					then
 						-- Smart Bots: the enemy carry/mid is harassed first unless another hero is much lower
 						local hp = enemy:GetHealth()
@@ -469,6 +501,8 @@ if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu
 		if fLaneFrontAmount_enemy < fLaneFrontAmount then
 			target_loc = GetLaneFrontLocation(GetOpposingTeam(), botAssignedLane, -nLongestAttackRange)
 		end
+
+		target_loc = KeepAwayFromEnemyTowers(target_loc)
 
 		if DotaTime() >= fNextMovementTime then
 			bot:Action_MoveToLocation(target_loc + RandomVector(100))

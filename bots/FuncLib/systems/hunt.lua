@@ -213,16 +213,20 @@ local function KeepHunting(bot, h)
 	local targetLow = unit ~= nil and Fu.GetHP(unit) < 0.25
 	if IsNearEnemyTower(loc) and not targetLow then StopHunt(bot, 'he ran under a tower') return false end
 
-	-- Do not fight a losing battle: allies close to the target (including those still on the
-	-- way) must outnumber the enemies around him.
-	local helpers = CountEnemyHelpers(h.pid, loc)
-	local allies = 0
-	for _, ally in pairs(GetUnitList(UNIT_LIST_ALLIED_HEROES) or {}) do
-		if ally ~= nil and ally:IsAlive() and not ally:IsIllusion() and GetUnitToLocationDistance(ally, loc) <= 3000 then
-			allies = allies + 1
+	-- Do not fight a losing battle: allies on the way (not retreating, within gathering range)
+	-- must outnumber the enemies around him. The first seconds are for gathering.
+	if DotaTime() - h.startTime > 4 then
+		local helpers = CountEnemyHelpers(h.pid, loc)
+		local allies = 0
+		for _, ally in pairs(GetUnitList(UNIT_LIST_ALLIED_HEROES) or {}) do
+			if ally ~= nil and ally:IsAlive() and not ally:IsIllusion()
+			and ally:GetActiveMode() ~= BOT_MODE_RETREAT
+			and GetUnitToLocationDistance(ally, loc) <= MAX_GATHER_DIST then
+				allies = allies + 1
+			end
 		end
+		if allies < helpers + 2 then StopHunt(bot, 'too many enemies came') return false end
 	end
-	if allies < helpers + 1 then StopHunt(bot, 'too many enemies came') return false end
 	return true
 end
 
