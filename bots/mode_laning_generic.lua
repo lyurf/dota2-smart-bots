@@ -161,12 +161,20 @@ function GetDesireRaw()
 
 	if local_mode_laning_generic or bSmartLaning or (Fu.GetPosition(bot) == 1 and Fu.IsPosxHuman(5)) then
 		-- last hit priority during early laning
-		if currentTime <= 9 * 60 then
+		if currentTime <= 10 * 60 then
 			local hitCreep, _ = GetBestLastHitCreep(nEnemyCreeps)
 			if Fu.IsValid(hitCreep) then
 				if Fu.IsCore(bot) or not Fu.IsThereCoreNearby(1300) -- supports leave last hits to a core in the same lane
 				then
 					return 0.6
+				end
+			end
+			-- Smart Bots: also stay in lane while a creep is about to become killable, so the bot
+			-- is in position for the last hit instead of drifting into another mode between hits.
+			if Fu.GetHP(bot) > 0.5 and (Fu.IsCore(bot) or not Fu.IsThereCoreNearby(1300)) then
+				local prepCreep = GetCreepToPrepare(nEnemyCreeps, bot:GetNearbyTowers(1200, true))
+				if Fu.IsValid(prepCreep) then
+					return 0.5
 				end
 			end
 		end
@@ -204,7 +212,12 @@ function GetDesireRaw()
 		then
 			return BOT_MODE_DESIRE_HIGH + 0.04
 		end
-		return (BOT_MODE_DESIRE_MODERATE - 0.05) * hpScale
+		-- Smart Bots: a player stays in lane after a trade at 70% HP. The old value (0.30) lost
+		-- to retreat as soon as the bot took a few hits from the enemy laners, so bots walked
+		-- back and missed most last hits (8 LH at 5:00 for a carry). Now laning holds up to
+		-- ~60% HP and fades out between 60% and 30%, where retreat takes over.
+		local fLaneDesire = Fu.IsCore(bot) and 0.45 or 0.4
+		return RemapValClamped(botHP, 0.3, 0.6, 0.12, fLaneDesire)
 	end
 
 	if currentTime <= 12 * 60 and botLV <= 11 then return 0.2 * hpScale end
