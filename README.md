@@ -34,7 +34,8 @@ Install, start a lobby and play.
   bots harass the enemy carry/mid first.
 - **Bots help their human teammates.** When you start a fight or walk into the enemy half next to
   enemy heroes, allied support bots (up to 4500 away) and nearby bots come and hit your target.
-  Ping the map (Alt + click) and supports come to the ping.
+  Ping next to yourself (Alt + click) and supports come; pings far from the pinger are treated as
+  warnings and ignored. Fights are judged by hero strength, not headcount.
 - **Cores farm.** The carry and mid keep farming between fights whatever `Push_Frequency` is set to;
   everyone farms less and takes objectives when the team is 2+ heroes up.
 - **Smarter defaults.** Balanced push/farm (`Push_Frequency = 2`) and full thinking (`ThinkLess = 0`).

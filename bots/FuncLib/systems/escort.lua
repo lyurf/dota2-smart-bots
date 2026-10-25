@@ -9,9 +9,12 @@ Two triggers, so the bot does not wander around a farming core for nothing:
    up to 4500 away, any other bot joins if it is already close (1800). They attack
    the human's target, or the enemy closest to the human.
 
-2. The human pings the map (alt + click, normal ping, not the danger ping): supports
-   within 6000 and any bot within 2500 go to the ping for up to 15 seconds and fight
-   what they find there.
+2. The human pings the map next to himself (alt + click, normal ping, not the danger
+   ping): supports within 6000 and any bot within 2500 go to the ping for up to 15
+   seconds and fight what they find there if the fight is winnable. A ping far from
+   the pinger is treated as a warning for someone else and ignored.
+
+Fights are judged by strength (damage x health of the heroes there), not by headcount.
 
 Used by mode_team_roam_generic.lua: X.GetDesire(bot) and X.Think(bot).
 --]]
@@ -57,16 +60,32 @@ local function VisibleEnemiesNear(loc, radius)
 	return list
 end
 
-local function AlliesNear(loc, radius)
-	local n = 0
+-- Fight strength of a hero: damage it can deal x health it has left. Two farmed cores can be
+-- worth more than four weak heroes, so fights are judged by this, not by the number of heroes.
+local function HeroPower(u)
+	local ok, offense = pcall(function() return u:GetOffensivePower() end)
+	if not ok or offense == nil or offense <= 0 then offense = u:GetAttackDamage() * 3 end
+	return math.sqrt(math.max(1, offense) * math.max(1, u:GetHealth()))
+end
+
+-- Our power around a location (bot itself included, it is coming) against the visible enemies there.
+local function PowerAround(bot, loc, enemies)
+	local ours = HeroPower(bot)
 	for _, ally in pairs(GetUnitList(UNIT_LIST_ALLIED_HEROES) or {}) do
-		if ally ~= nil and ally:IsAlive() and not ally:IsIllusion()
-		and GetUnitToLocationDistance(ally, loc) <= radius then
-			n = n + 1
+		if ally ~= nil and ally ~= bot and ally:IsAlive() and not ally:IsIllusion()
+		and GetUnitToLocationDistance(ally, loc) <= FIGHT_RADIUS + 400 then
+			ours = ours + HeroPower(ally)
 		end
 	end
-	return n
+	local theirs = 0
+	for _, e in ipairs(enemies) do theirs = theirs + HeroPower(e) end
+	return ours, theirs
 end
+
+-- Join when our side (with this bot) is at least as strong as 3/4 of theirs.
+local JOIN_POWER_RATIO = 0.75
+-- Leave a running fight only when it turned clearly bad.
+local LEAVE_POWER_RATIO = 0.55
 
 local function IsSupport(bot)
 	local pos = Fu.GetPosition(bot)
@@ -102,8 +121,8 @@ local function FindHumanFight(bot)
 						fighting = true
 					end
 				end
-				local allies = AlliesNear(human:GetLocation(), FIGHT_RADIUS) + 1 -- +1: this bot coming
-				if fighting and #enemies <= allies + 1 then
+				local ours, theirs = PowerAround(bot, human:GetLocation(), enemies)
+				if fighting and ours >= theirs * JOIN_POWER_RATIO then
 					return human, enemies
 				end
 			end
@@ -119,7 +138,10 @@ local function FindHumanPing(bot)
 			if ok and ping ~= nil and ping.time ~= nil and ping.time ~= 0 and ping.normal_ping
 			and GameTime() - ping.time <= PING_FRESH_SEC and ping.location ~= nil then
 				local maxDist = IsSupport(bot) and PING_SUPPORT_DIST or PING_CORE_DIST
-				if GetUnitToLocationDistance(bot, ping.location) <= maxDist then
+				-- Only a ping next to the pinger means "come here". A ping far from himself is
+				-- usually a warning to someone else ("careful, enemy there"), so it is ignored.
+				if GetUnitToLocationDistance(bot, ping.location) <= maxDist
+				and GetUnitToLocationDistance(human, ping.location) <= 1500 then
 					return human, ping
 				end
 			end
@@ -160,6 +182,8 @@ function X.GetDesire(bot)
 		if #enemies > 0 then
 			e.lastEnemySeen = now
 			e.enemies = enemies
+			local ours, theirs = PowerAround(bot, center, enemies)
+			if ours < theirs * LEAVE_POWER_RATIO then Stop(bot, 'enemies are too strong') return 0 end
 		elseif e.byPing then
 			e.enemies = {}
 			-- reached the ping and nothing is there
