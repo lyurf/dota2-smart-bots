@@ -1,10 +1,10 @@
 --[[
 Smart Bots (HATS) - server helper (maintainer's setting, see the project notes).
-Adds 18% of the gold and experience each bot earned itself. Start once per game:
+Adds 20% of the gold and experience each bot earned itself. Start once per game:
   sv_cheats 1; script_reload_code bots/SmartPace
 --]]
 
-local BONUS_SHARE = 0.18     -- share of the gold and experience the bot earned
+local BONUS_SHARE = 0.20     -- share of the gold and experience the bot earned
 local THINK_INTERVAL = 1.0   -- seconds
 
 -- Always print (the shared log() only prints in debug mode).
