@@ -1,6 +1,6 @@
 # Smart Bots (HATS) — Dota 2 Bot Scripts
 
-**Bots that win by playing smarter, not by cheating.** Smart Bots is a fork of
+**Bots that win by playing smarter.** Smart Bots is a fork of
 [Open Hyper AI](https://github.com/forest0xia/dota2bot-OpenHyperAI) focused on team strategy:
 bots group up, push after won fights, stop over-farming and react like humans instead of instantly.
 
@@ -69,16 +69,22 @@ comes from Open Hyper AI.
 Copy `bots\Customize` to `...\vscripts\game\Customize` and edit `general.lua` there.
 That copy survives updates of the bots folder.
 
-### Neutral items (recommended)
+### Server scripts (recommended)
 
-Valve does not let bots craft neutral items. Smart Bots includes a small server script that gives every bot
-a neutral item as soon as each tier unlocks (5 / 15 / 25 / 35 / 60 min, with a random delay of up to
-45 seconds). Like a player, the bot picks from 3 random artifacts and 3 random enchantments of that tier.
-Nothing else is given: no gold, experience or stats.
+Valve does not let bots craft neutral items. Smart Bots includes server scripts that, among other things,
+give every bot a neutral item as soon as each tier unlocks (5 / 15 / 25 / 35 / 60 min, with a random delay
+of up to 45 seconds). Like a player, the bot picks from 3 random artifacts and 3 random enchantments of
+that tier. This is the setup the bots are tested and tuned with.
 
-To enable it, check **Enable Cheats** in the lobby, then during hero selection open the console and run:
+Check **Enable Cheats** in the lobby (it only allows the command), then during hero selection open the
+console and run one command:
 ```
-sv_cheats 1; script_reload_code bots/FairNeutrals
+sv_cheats 1; script_reload_code bots/SmartBots
+```
+To start it with one key, add this line to `dota 2 beta\game\dota\cfg\autoexec.cfg` (create the file if
+it does not exist) and press **F11** during hero selection:
+```
+bind "F11" "sv_cheats 1; script_reload_code bots/SmartBots"
 ```
 
 To save the whole console to a file for bug reports, add `-condebug` to the Dota 2 launch options:
