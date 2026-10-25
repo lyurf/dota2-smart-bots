@@ -357,12 +357,10 @@ function ____exports.GetPushDesireHelper(bot, lane)
         end
     end
     local alliesPushing = 0
+    local thisLanePushMode = lane == Lane.Top and BotMode.PushTowerTop or (lane == Lane.Mid and BotMode.PushTowerMid or BotMode.PushTowerBot)
     for ____, member in ipairs(GetAllyHeroes()) do
         if member:IsAlive() and member ~= bot then
-            local memberMode = member:GetActiveMode()
-            local isPushMode = memberMode == BotMode.PushTowerTop or memberMode == BotMode.PushTowerMid or memberMode == BotMode.PushTowerBot
-            local nearLaneFront = GetUnitToLocationDistance(member, laneFront) < 2500
-            if isPushMode or nearLaneFront then
+            if member:GetActiveMode() == thisLanePushMode and GetUnitToLocationDistance(member, laneFront) < 2500 then
                 alliesPushing = alliesPushing + 1
             end
         end
@@ -371,7 +369,7 @@ function ____exports.GetPushDesireHelper(bot, lane)
         _isAllBotsGame = not Fu.Utils.IsHumanPlayerInTeam(GetTeam())
     end
     if _isAllBotsGame and not gameState.isLaningPhase and not gameState.isEarlyGame then
-        if alliesPushing >= 2 and lane == _pushCacheBestLane then
+        if alliesPushing >= 3 and lane == _pushCacheBestLane then
             local pushLaneFront = GetLaneFrontLocation(team, lane, 0)
             local teamFountain = team == Team.Radiant and RadiantFountainTpPoint or DireFountainTpPoint
             local distFrontToUs = GetLocationToLocationDistance(pushLaneFront, teamFountain)

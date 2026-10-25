@@ -516,13 +516,13 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
     }
 
     // Count allies pushing or near the push lane front
+    // Smart Bots: only allies really pushing THIS lane count (not a carry farming near the wave),
+    // so the team gathers when a group push is on, not every time someone stands near a lane.
     let alliesPushing = 0;
+    const thisLanePushMode = lane === Lane.Top ? BotMode.PushTowerTop : lane === Lane.Mid ? BotMode.PushTowerMid : BotMode.PushTowerBot;
     for (const member of GetAllyHeroes()) {
         if (member.IsAlive() && member !== bot) {
-            const memberMode = member.GetActiveMode();
-            const isPushMode = memberMode === BotMode.PushTowerTop || memberMode === BotMode.PushTowerMid || memberMode === BotMode.PushTowerBot;
-            const nearLaneFront = GetUnitToLocationDistance(member, laneFront) < 2500;
-            if (isPushMode || nearLaneFront) {
+            if (member.GetActiveMode() === thisLanePushMode && GetUnitToLocationDistance(member, laneFront) < 2500) {
                 alliesPushing++;
             }
         }
@@ -539,7 +539,7 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
     }
     if (_isAllBotsGame && !gameState.isLaningPhase && !gameState.isEarlyGame) {
         // Detect: which lane has 3+ allies pushing past river?
-        if (alliesPushing >= 2 && lane === _pushCacheBestLane) {
+        if (alliesPushing >= 3 && lane === _pushCacheBestLane) {
             const pushLaneFront = GetLaneFrontLocation(team, lane, 0);
             const teamFountain = team === Team.Radiant ? RadiantFountainTpPoint : DireFountainTpPoint;
             const distFrontToUs = GetLocationToLocationDistance(pushLaneFront, teamFountain);
