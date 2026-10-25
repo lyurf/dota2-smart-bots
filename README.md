@@ -11,7 +11,8 @@ Install, start a lobby and play.
 
 > Bots installed correctly have names ending with **`.HATS`**.
 >
-> 🇷🇺 **Подробная инструкция по установке и запуску на русском: [docs/INSTALL_RU.md](docs/INSTALL_RU.md)**
+> 📖 **Detailed step-by-step install and run guide: [docs/INSTALL_EN.md](docs/INSTALL_EN.md)**
+> (на русском: [docs/INSTALL_RU.md](docs/INSTALL_RU.md))
 
 ---
 

@@ -11,7 +11,8 @@
 
 > Правильно установленные боты имеют ники с окончанием **`.HATS`**.
 >
-> **Подробная пошаговая инструкция по установке и запуску: [docs/INSTALL_RU.md](docs/INSTALL_RU.md)**
+> 📖 **Подробная пошаговая инструкция по установке и запуску: [docs/INSTALL_RU.md](docs/INSTALL_RU.md)**
+> (in English: [docs/INSTALL_EN.md](docs/INSTALL_EN.md))
 
 ---
 
