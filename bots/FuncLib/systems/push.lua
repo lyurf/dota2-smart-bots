@@ -32,7 +32,7 @@ local function __TS__ArraySome(self, callbackfn, thisArg)
 end
 -- End of Lua Library inline imports
 local ____exports = {}
-local refreshPushCache, updateGameStateCache, updateLocationStateCache, updateUnitStateCache, HasPushAdvantage, presence_adjust, GetNextEnemyBuildingOnLane, pingTimeDelta, hEnemyAncient, _pushCacheTick, _pushCacheBestLane, _pushCacheEnemiesAtAncient, _pushCacheEnemiesOnHG, _pushCacheLaneBlocked, _pushCacheDefendPingSuppressed, _pushCacheRecentDefendTime, nMaxDesire, _fiveManPushLane, _fiveManPushUntil, _isAllBotsGame, _postDefendBoost, _prevDefendDesire, POST_DEFEND_PUSH_DURATION, PUSH_CACHE_TTL, gameStateCache, locationStateCache, unitStateCache, BASE_ANC_RADIUS, _nextBuildingCache
+local refreshPushCache, updateGameStateCache, updateLocationStateCache, updateUnitStateCache, GetAllyHeroes, HasPushAdvantage, presence_adjust, GetNextEnemyBuildingOnLane, pingTimeDelta, hEnemyAncient, _pushCacheTick, _pushCacheBestLane, _pushCacheEnemiesAtAncient, _pushCacheEnemiesOnHG, _pushCacheLaneBlocked, _pushCacheDefendPingSuppressed, _pushCacheRecentDefendTime, nMaxDesire, _fiveManPushLane, _fiveManPushUntil, _isAllBotsGame, _postDefendBoost, _prevDefendDesire, POST_DEFEND_PUSH_DURATION, PUSH_CACHE_TTL, gameStateCache, locationStateCache, unitStateCache, BASE_ANC_RADIUS, _nextBuildingCache
 local Fu = require(GetScriptDirectory().."/FuncLib/func_utils")
 local ____dota = require(GetScriptDirectory().."/ts_libs/dota/index")
 local Barracks = ____dota.Barracks
@@ -158,6 +158,15 @@ function updateUnitStateCache()
     }
     return unitStateCache
 end
+function GetAllyHeroes()
+    local result = {}
+    for ____, u in ipairs(GetUnitList(UnitType.AlliedHeroes)) do
+        if u ~= nil and Fu.IsValidHero(u) and not u:IsIllusion() then
+            result[#result + 1] = u
+        end
+    end
+    return result
+end
 function HasPushAdvantage(gameState)
     local aAlive = gameState.aliveAllyCount
     local eAlive = gameState.aliveEnemyCount
@@ -201,18 +210,25 @@ function ____exports.GetPushDesireHelper(bot, lane)
         return BotModeDesire.None
     end
     local bTeamAdvantage = HasPushAdvantage(gameState)
+    if gameState.hasAegis and gameState.aliveAllyCount >= 4 and not gameState.isLaningPhase and bot:GetLevel() >= 6 then
+        if _pushCacheBestLane == nil then
+            _pushCacheBestLane = ____exports.WhichLaneToPush(bot, lane)
+        end
+        if lane ~= _pushCacheBestLane then
+            return BotModeDesire.None
+        end
+        local nextBuilding = GetNextEnemyBuildingOnLane(lane)
+        if nextBuilding ~= nil and Fu.GetHP(bot) > 0.4 then
+            return 0.6
+        end
+    end
     if _pushCacheLaneBlocked[lane] and not bTeamAdvantage then
         return BotModeDesire.None
     end
     if gameState.isLaningPhase then
-        do
-            local i = 1
-            while i <= 5 do
-                local member = GetTeamMember(i)
-                if member ~= nil and member:GetLevel() < 6 then
-                    return BotModeDesire.None
-                end
-                i = i + 1
+        for ____, member in ipairs(GetAllyHeroes()) do
+            if member:GetLevel() < 6 then
+                return BotModeDesire.None
             end
         end
     end
@@ -341,20 +357,14 @@ function ____exports.GetPushDesireHelper(bot, lane)
         end
     end
     local alliesPushing = 0
-    local teamPlayers = GetTeamPlayers(gameState.team)
-    do
-        local i = 1
-        while i <= #teamPlayers do
-            local member = GetTeamMember(i)
-            if member ~= nil and member:IsAlive() and member ~= bot then
-                local memberMode = member:GetActiveMode()
-                local isPushMode = memberMode == BotMode.PushTowerTop or memberMode == BotMode.PushTowerMid or memberMode == BotMode.PushTowerBot
-                local nearLaneFront = GetUnitToLocationDistance(member, laneFront) < 2500
-                if isPushMode or nearLaneFront then
-                    alliesPushing = alliesPushing + 1
-                end
+    for ____, member in ipairs(GetAllyHeroes()) do
+        if member:IsAlive() and member ~= bot then
+            local memberMode = member:GetActiveMode()
+            local isPushMode = memberMode == BotMode.PushTowerTop or memberMode == BotMode.PushTowerMid or memberMode == BotMode.PushTowerBot
+            local nearLaneFront = GetUnitToLocationDistance(member, laneFront) < 2500
+            if isPushMode or nearLaneFront then
+                alliesPushing = alliesPushing + 1
             end
-            i = i + 1
         end
     end
     if _isAllBotsGame == nil then
@@ -490,14 +500,9 @@ function ____exports.GetPushDesireHelper(bot, lane)
         if isCurrentLanePushLane and Fu.GetPosition(bot) >= 4 then
             local pushModeForLane = lane == Lane.Top and BotMode.PushTowerTop or (lane == Lane.Mid and BotMode.PushTowerMid or BotMode.PushTowerBot)
             local alliesPushingThisLane = 0
-            do
-                local i = 1
-                while i <= #GetTeamPlayers(GetTeam()) do
-                    local member = GetTeamMember(i)
-                    if member and member ~= bot and member:IsAlive() and member:GetActiveMode() == pushModeForLane then
-                        alliesPushingThisLane = alliesPushingThisLane + 1
-                    end
-                    i = i + 1
+            for ____, member in ipairs(GetAllyHeroes()) do
+                if member ~= bot and member:IsAlive() and member:GetActiveMode() == pushModeForLane then
+                    alliesPushingThisLane = alliesPushingThisLane + 1
                 end
             end
             if alliesPushingThisLane >= 3 then
@@ -1291,24 +1296,24 @@ function ____exports.PushThink(bot, lane)
     end
     for ____, creep in ipairs(nCreeps) do
         do
-            local __continue243
+            local __continue254
             repeat
                 if not Fu.IsValid(creep) or not Fu.CanBeAttacked(creep) then
-                    __continue243 = true
+                    __continue254 = true
                     break
                 end
                 if Fu.IsTormentor(creep) or Fu.IsRoshan(creep) then
-                    __continue243 = true
+                    __continue254 = true
                     break
                 end
                 if bTowerNearby and GetUnitToLocationDistance(creep, vTeamFountain) >= towerDistanceToFountain + 500 then
-                    __continue243 = true
+                    __continue254 = true
                     break
                 end
                 bot:Action_AttackUnit(creep, true)
                 return
             until true
-            if not __continue243 then
+            if not __continue254 then
                 break
             end
         end

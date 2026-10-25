@@ -7166,6 +7166,17 @@ X.ConsiderItemDesire['item_smoke_of_deceit'] = function(item)
 		then
 			return BOT_ACTION_DESIRE_HIGH, hEffectTarget, sCastType, sCastMotive
 		end
+
+		-- Smart Bots: smoke up on the way to a group gank of the enemy carry (FuncLib/systems/hunt.lua),
+		-- while still far from him so the enemy cannot see the group coming.
+		local hunt = bot._smartHunt
+		if #nInRangeAlly >= 2
+		and nMode == BOT_MODE_TEAM_ROAM
+		and hunt ~= nil and hunt.active and hunt.lastLoc ~= nil
+		and GetUnitToLocationDistance(bot, hunt.lastLoc) > 2000
+		then
+			return BOT_ACTION_DESIRE_HIGH, hEffectTarget, sCastType, sCastMotive
+		end
 		
 		if (timeOfDay == 'day' and GetUnitToLocationDistance(bot, Fu.Utils.RadiantRoshanLoc) < 600)
 		or (timeOfDay == 'night' and GetUnitToLocationDistance(bot, Fu.Utils.DireRoshanLoc) < 600)

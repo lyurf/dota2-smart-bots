@@ -167,8 +167,10 @@ local function TryStartHunt(bot, h)
 			local helpers = CountEnemyHelpers(cand.pid, loc)
 			local hunters = GetHunters(loc)
 			local targetLow = unit ~= nil and Fu.GetHP(unit) < 0.45
-			local need = math.max(targetLow and 2 or MIN_HUNTERS, helpers + 2)
-			if helpers <= 1 and #hunters >= need then
+			-- With the Aegis the team can afford a riskier gank.
+			local hasAegis = Fu.DoesTeamHaveAegis()
+			local need = math.max((targetLow or hasAegis) and 2 or MIN_HUNTERS, helpers + (hasAegis and 1 or 2))
+			if helpers <= (hasAegis and 2 or 1) and #hunters >= need then
 				local isHunter, isLeader = false, false
 				for i, entry in ipairs(hunters) do
 					if entry.unit == bot then

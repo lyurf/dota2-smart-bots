@@ -204,10 +204,10 @@ function updateDefendUnitStateCache(): CachedDefendUnitState {
         return defendUnitStateCache;
     }
 
+    // Smart Bots: GetTeamMember() only returns the bot itself in per-bot sandboxes; use the unit list.
     const teamMembers: Unit[] = [];
-    for (let i = 1; i <= GetTeamPlayers(GetTeam()).length; i++) {
-        const member = GetTeamMember(i);
-        if (member !== null) {
+    for (const member of GetUnitList(UnitType.AlliedHeroes)) {
+        if (member !== null && !member.IsIllusion()) {
             teamMembers.push(member);
         }
     }
@@ -347,9 +347,8 @@ function GetThreatenedLane(): Lane {
 function GetClosestAllyPos(tPosList: number[], vLocation: Vector): number {
     let bestPos: number | null = null;
     let bestDist = math.huge;
-    for (let i = 1; i <= 5; i++) {
-        const m = GetTeamMember(i);
-        if (Fu.IsValidHero(m)) {
+    for (const m of GetUnitList(UnitType.AlliedHeroes)) {
+        if (Fu.IsValidHero(m) && !m.IsIllusion()) {
             const p = Fu.GetPosition(m);
             for (let j = 1; j <= tPosList.length; j++) {
                 if (p === tPosList[j]) {
@@ -1071,8 +1070,7 @@ export function GetDefendDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
         // Count allies that are EN ROUTE (closer than this bot, but NOT already at hub).
         if (stillNeeded > 0 && stillNeeded < 5) {
             let enRouteCloser = 0;
-            for (let i = 1; i <= GetTeamPlayers(nTeam).length; i++) {
-                const member = GetTeamMember(i);
+            for (const member of GetUnitList(UnitType.AlliedHeroes)) {
                 if (member !== null && member.IsAlive() && member !== bot && !member.IsIllusion()) {
                     const memberDist = GetUnitToLocationDistance(member, hub);
                     if (memberDist > 2500 && memberDist < distToHub - 500) {

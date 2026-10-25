@@ -152,14 +152,9 @@ function updateDefendUnitStateCache()
         return defendUnitStateCache
     end
     local teamMembers = {}
-    do
-        local i = 1
-        while i <= #GetTeamPlayers(GetTeam()) do
-            local member = GetTeamMember(i)
-            if member ~= nil then
-                teamMembers[#teamMembers + 1] = member
-            end
-            i = i + 1
+    for ____, member in ipairs(GetUnitList(UnitType.AlliedHeroes)) do
+        if member ~= nil and not member:IsIllusion() then
+            teamMembers[#teamMembers + 1] = member
         end
     end
     defendUnitStateCache = {
@@ -193,19 +188,19 @@ function _recentHeroCountNear(loc, r, window)
     local cnt = 0
     for ____, id in ipairs(GetTeamPlayers(gameState.enemyTeam)) do
         do
-            local __continue23
+            local __continue24
             repeat
                 if not IsHeroAlive(id) then
-                    __continue23 = true
+                    __continue24 = true
                     break
                 end
                 local info = GetHeroLastSeenInfo(id)
                 if info and info[1] and info[1].time_since_seen <= window and GetLocationToLocationDistance(info[1].location, loc) <= r then
                     cnt = cnt + 1
                 end
-                __continue23 = true
+                __continue24 = true
             until true
-            if not __continue23 then
+            if not __continue24 then
                 break
             end
         end
@@ -302,27 +297,22 @@ end
 function GetClosestAllyPos(tPosList, vLocation)
     local bestPos = nil
     local bestDist = math.huge
-    do
-        local i = 1
-        while i <= 5 do
-            local m = GetTeamMember(i)
-            if Fu.IsValidHero(m) then
-                local p = Fu.GetPosition(m)
-                do
-                    local j = 1
-                    while j <= #tPosList do
-                        if p == tPosList[j + 1] then
-                            local d = GetUnitToLocationDistance(m, vLocation)
-                            if d < bestDist then
-                                bestDist = d
-                                bestPos = p
-                            end
+    for ____, m in ipairs(GetUnitList(UnitType.AlliedHeroes)) do
+        if Fu.IsValidHero(m) and not m:IsIllusion() then
+            local p = Fu.GetPosition(m)
+            do
+                local j = 1
+                while j <= #tPosList do
+                    if p == tPosList[j + 1] then
+                        local d = GetUnitToLocationDistance(m, vLocation)
+                        if d < bestDist then
+                            bestDist = d
+                            bestPos = p
                         end
-                        j = j + 1
                     end
+                    j = j + 1
                 end
             end
-            i = i + 1
         end
     end
     return bestPos or tPosList[1]
@@ -1105,17 +1095,12 @@ function ____exports.GetDefendDesireHelper(bot, lane)
     if alliesAlreadyDefending < 3 then
         if stillNeeded > 0 and stillNeeded < 5 then
             local enRouteCloser = 0
-            do
-                local i = 1
-                while i <= #GetTeamPlayers(nTeam) do
-                    local member = GetTeamMember(i)
-                    if member ~= nil and member:IsAlive() and member ~= bot and not member:IsIllusion() then
-                        local memberDist = GetUnitToLocationDistance(member, hub)
-                        if memberDist > 2500 and memberDist < distToHub - 500 then
-                            enRouteCloser = enRouteCloser + 1
-                        end
+            for ____, member in ipairs(GetUnitList(UnitType.AlliedHeroes)) do
+                if member ~= nil and member:IsAlive() and member ~= bot and not member:IsIllusion() then
+                    local memberDist = GetUnitToLocationDistance(member, hub)
+                    if memberDist > 2500 and memberDist < distToHub - 500 then
+                        enRouteCloser = enRouteCloser + 1
                     end
-                    i = i + 1
                 end
             end
             if enRouteCloser >= stillNeeded then
@@ -1128,10 +1113,10 @@ function ____exports.GetDefendDesireHelper(bot, lane)
         if distToHub > 4000 then
             for ____, otherLane in ipairs({Lane.Top, Lane.Mid, Lane.Bot}) do
                 do
-                    local __continue224
+                    local __continue227
                     repeat
                         if otherLane == lane then
-                            __continue224 = true
+                            __continue227 = true
                             break
                         end
                         local otherHub = GetLaneFrontLocation(nTeam, otherLane, 0)
@@ -1140,9 +1125,9 @@ function ____exports.GetDefendDesireHelper(bot, lane)
                         if #otherEnemies >= 1 and otherDist < distToHub - 1500 then
                             return BotModeDesire.None
                         end
-                        __continue224 = true
+                        __continue227 = true
                     until true
-                    if not __continue224 then
+                    if not __continue227 then
                         break
                     end
                 end
@@ -1308,10 +1293,10 @@ function ____exports.GetDefendDesire(bot, lane)
         local scanRange = math.max(1600, botAtkRangeForNear)
         for ____, e in ipairs(Fu.GetLastSeenEnemiesNearLoc(botLocForNear, scanRange)) do
             do
-                local __continue137
+                local __continue139
                 repeat
                     if not Fu.IsValidHero(e) then
-                        __continue137 = true
+                        __continue139 = true
                         break
                     end
                     local dist = GetUnitToUnitDistance(bot, e)
@@ -1319,9 +1304,9 @@ function ____exports.GetDefendDesire(bot, lane)
                         res = res * 0.1
                         break
                     end
-                    __continue137 = true
+                    __continue139 = true
                 until true
-                if not __continue137 then
+                if not __continue139 then
                     break
                 end
             end

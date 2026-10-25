@@ -286,6 +286,16 @@ const ObjectiveState: Record<number, Partial<Record<Lane, LaneState>>> = {};
  * - Aegis with 4+ heroes alive, or
  * - not fewer heroes alive and 8000+ net worth lead after the early game.
  */
+// Smart Bots: allied heroes from the unit list. GetTeamMember() only returns the bot itself in
+// per-bot sandboxes (LAN lobbies), so loops over it never saw the rest of the team.
+function GetAllyHeroes(): Unit[] {
+    const result: Unit[] = [];
+    for (const u of GetUnitList(UnitType.AlliedHeroes)) {
+        if (u !== null && Fu.IsValidHero(u) && !u.IsIllusion()) result.push(u);
+    }
+    return result;
+}
+
 function HasPushAdvantage(gameState: ReturnType<typeof getGlobalGameState>): boolean {
     const aAlive = gameState.aliveAllyCount;
     const eAlive = gameState.aliveEnemyCount;
@@ -348,14 +358,28 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
     // Smart Bots: a team with a clear advantage (more heroes alive, Aegis or a big net worth lead)
     // pushes through defenders like a pro team instead of waiting until the enemy dies.
     const bTeamAdvantage = HasPushAdvantage(gameState);
+
+    // Smart Bots: Aegis window. After Roshan the whole team groups on one lane (the same lane in
+    // every bot's script) and pushes while the Aegis lasts, forcing the enemy to fight under
+    // their tower at a disadvantage - instead of going back to farming.
+    if (gameState.hasAegis && gameState.aliveAllyCount >= 4 && !gameState.isLaningPhase && bot.GetLevel() >= 6) {
+        if (_pushCacheBestLane === null) {
+            _pushCacheBestLane = WhichLaneToPush(bot, lane);
+        }
+        if (lane !== _pushCacheBestLane) return BotModeDesire.None;
+        const nextBuilding = GetNextEnemyBuildingOnLane(lane);
+        if (nextBuilding !== null && Fu.GetHP(bot) > 0.4) {
+            return 0.6 as BotModeDesire;
+        }
+    }
+
     if (_pushCacheLaneBlocked[lane] && !bTeamAdvantage) return BotModeDesire.None;
 
     // During laning phase, all team members must be level 6+ to push.
     // After laning, only require the pushing bot itself to be 6+ (checked above).
     if (gameState.isLaningPhase) {
-        for (let i = 1; i <= 5; i++) {
-            const member = GetTeamMember(i);
-            if (member !== null && member.GetLevel() < 6) return BotModeDesire.None;
+        for (const member of GetAllyHeroes()) {
+            if (member.GetLevel() < 6) return BotModeDesire.None;
         }
     }
 
@@ -493,10 +517,8 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
 
     // Count allies pushing or near the push lane front
     let alliesPushing = 0;
-    const teamPlayers = GetTeamPlayers(gameState.team);
-    for (let i = 1; i <= teamPlayers.length; i++) {
-        const member = GetTeamMember(i);
-        if (member !== null && member.IsAlive() && member !== bot) {
+    for (const member of GetAllyHeroes()) {
+        if (member.IsAlive() && member !== bot) {
             const memberMode = member.GetActiveMode();
             const isPushMode = memberMode === BotMode.PushTowerTop || memberMode === BotMode.PushTowerMid || memberMode === BotMode.PushTowerBot;
             const nearLaneFront = GetUnitToLocationDistance(member, laneFront) < 2500;
@@ -649,9 +671,8 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
         if (isCurrentLanePushLane && Fu.GetPosition(bot) >= 4) {
             const pushModeForLane = lane === Lane.Top ? BotMode.PushTowerTop : lane === Lane.Mid ? BotMode.PushTowerMid : BotMode.PushTowerBot;
             let alliesPushingThisLane = 0;
-            for (let i = 1; i <= GetTeamPlayers(GetTeam()).length; i++) {
-                const member = GetTeamMember(i);
-                if (member && member !== bot && member.IsAlive() && member.GetActiveMode() === pushModeForLane) {
+            for (const member of GetAllyHeroes()) {
+                if (member !== bot && member.IsAlive() && member.GetActiveMode() === pushModeForLane) {
                     alliesPushingThisLane++;
                 }
             }
