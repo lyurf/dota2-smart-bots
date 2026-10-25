@@ -165,8 +165,8 @@ dota 2 beta\game\dota\scripts\vscripts\
    ```
    sv_cheats 1; script_reload_code bots/SmartBots
    ```
-3. В чате появятся сообщения *«Smart Bots: neutral items enabled»* и *«Smart Bots 3.1: server scripts
-   started»*, а в консоли строка `[SmartBots] Version 3.1. Server scripts started.` Номер — версия ботов
+3. В чате появятся сообщения *«Smart Bots: neutral items enabled»* и *«Smart Bots 3.2: server scripts
+   started»*, а в консоли строка `[SmartBots] Version 3.2. Server scripts started.` Номер — версия ботов
    у того, кто создал лобби. Если он меньше, чем на GitHub, скачайте ZIP заново (шаг 12).
 
 Команду нужно вводить **каждую игру**.
@@ -183,7 +183,7 @@ bind "F11" "sv_cheats 1; script_reload_code bots/SmartBots"
 - **Ники ботов заканчиваются на `.HATS`**, например `TyMaH.HATS`, `Nil.HATS`.
   Если ники с `.OHA` — загружается Open Hyper AI (см. шаг 3). Если ники случайные без тега — ошибка
   в файле настроек (см. шаг 6) или боты не загрузились (см. раздел ниже).
-- Перед горном бот вашей команды пишет приветствие **«Добро пожаловать в Smart Bots (HATS) 3.1»** — номер версии ботов.
+- Перед горном бот вашей команды пишет приветствие **«Добро пожаловать в Smart Bots (HATS) 3.2»** — номер версии ботов.
 - Если включены нейтральные предметы: в консоли строки `[FairNeutrals] ... got tier 1 ...`
   примерно на 5-й минуте.
 - На 5-й и 10-й минуте каждый бот пишет в консоль отчёт о линии:

@@ -505,19 +505,20 @@ end
 
 local AllyPIDs = nil
 function Fu.IsClosestToDustLocation(bot, loc)
-	if AllyPIDs == nil then AllyPIDs = GetTeamPlayers(GetTeam()) end
-
+	-- Smart Bots: allied heroes from the unit list. The old loop called GetTeamMember() with player
+	-- IDs; in per-bot sandboxes it only ever returns the bot itself, so no one was "closest" and
+	-- bots never used Dust on enemies that just went invisible.
 	local closest = nil
 	local closestDist = 100000
 
-	for _, id in pairs(AllyPIDs)
+	for _, member in pairs(GetUnitList(UNIT_LIST_ALLIED_HEROES) or {})
 	do
-		local member = GetTeamMember(id)
-
-		if Fu.IsValidHero(member)		
+		if Fu.IsValidHero(member)
+		and not member:IsIllusion()
+		and member:FindItemSlot('item_dust') >= 0
 		and member:GetItemSlotType(member:FindItemSlot('item_dust')) == ITEM_SLOT_TYPE_MAIN
+		and member:GetItemInSlot(member:FindItemSlot('item_dust')) ~= nil
 		and member:GetItemInSlot(member:FindItemSlot('item_dust')):IsFullyCastable()
-		and not Fu.IsSuspiciousIllusion(member)
 		then
 			local dist = GetUnitToLocationDistance(member, loc)
 
@@ -529,10 +530,7 @@ function Fu.IsClosestToDustLocation(bot, loc)
 		end
 	end
 
-	if closest ~= nil
-	then
-		return closest == bot
-	end
+	return closest ~= nil and closest == bot
 end
 
 
