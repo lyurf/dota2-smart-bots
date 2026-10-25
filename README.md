@@ -96,7 +96,7 @@ the log is written to `dota 2 beta\game\dota\console.log`.
 ## Development
 
 Source layout, systems and rules are described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Some Lua files are generated from TypeScript in `typescript/bots/` — edit both (see `CLAUDE.md`).
+Some Lua files are generated from TypeScript in `typescript/bots/` — edit both (see Section 13 of the architecture doc).
 
 ---
 

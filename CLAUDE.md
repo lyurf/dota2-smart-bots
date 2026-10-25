@@ -6,10 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **dota2bot-OpenHyperAI** project -- Lua bot scripts for Dota 2 that run in custom lobbies. Currently supports Patch 7.41/7.41a with 127 heroes.
 
-This repository is **Smart Bots (HATS)**, a fork of Open Hyper AI (based on upstream branch `pr-140-refactor`). Bot name suffix is `.HATS`. Goal: fair bots that play like smart (ideally pro) Dota 2 players. FretBots, Buff mode, difficulty voting, GPT chat and all network calls were removed. Chat is local only; position/pick/ban commands stay. Do not reintroduce them, cheats or online requests. The optional server script `bots/SmartPace.lua` is the maintainer's setting: keep it as it is and do not describe it in user-facing docs, chat or welcome messages (details in the private project notes). The other server-side script is `bots/FairNeutrals.lua` (optional, `sv_cheats 1; script_reload_code bots/FairNeutrals`): it gives every bot a neutral item when each tier unlocks (5/15/25/35/60 min, Turbo halved, random delay up to 45 s; maintainer's choice, no Madstone requirement), picking 1 of 3 artifacts and enchantments, using the pool in `FuncLib/data/neutral_items.lua`. It must give nothing else. Bots are always played on Valve's **Unfair** lobby difficulty; do not suggest other difficulties in docs. The bot AI scripts themselves must add no bonuses. The maintainer is a non-programmer who speaks Russian and tests in-game.
-
-Commit messages: do NOT add a `Claude-Session:` link (maintainer's request). A `Co-Authored-By` line is fine.
-
 ## Key Documentation
 
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** -- Complete codebase architecture, file map, naming conventions, all systems explained
