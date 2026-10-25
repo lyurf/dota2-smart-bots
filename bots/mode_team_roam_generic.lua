@@ -12,6 +12,7 @@ local Item = require(GetScriptDirectory()..'/FuncLib/systems/item')
 local Roles = require(GetScriptDirectory()..'/FuncLib/systems/role')
 local AttackSpecialUnit = require(GetScriptDirectory()..'/FuncLib/hero/special_units')
 local Hunt = require(GetScriptDirectory()..'/FuncLib/systems/hunt')
+local Escort = require(GetScriptDirectory()..'/FuncLib/systems/escort')
 
 local X = {}
 local team = GetTeam()
@@ -214,6 +215,13 @@ function GetDesireHelper()
             -- Scale by bot HP: suppress below 50%, zero below 30%
             return RemapValClamped(nBotHP, 0.3, 0.7, BOT_MODE_DESIRE_NONE, 0.4)
         end
+    end
+
+    -- Smart Bots: help human teammates who start a fight or ping the map (FuncLib/systems/escort.lua)
+    local nEscortDesire = Escort.GetDesire(bot)
+    if nEscortDesire > 0 then
+        hTargetCreep = nil
+        return nEscortDesire
     end
 
     -- Smart Bots: hunt the enemy carry together when he is seen alone (see FuncLib/systems/hunt.lua)
@@ -632,6 +640,7 @@ function Think()
     ItemOpsThink()
 
     -- Smart Bots: hunting the enemy carry (desire set in GetDesireHelper)
+    if Escort.IsEscorting(bot) and Escort.Think(bot) then return end
     if Hunt.IsHunting(bot) and Hunt.Think(bot) then return end
 
 	if Fu.IsValid(hTargetCreep) then

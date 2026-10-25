@@ -32,6 +32,9 @@ Install, start a lobby and play.
 - **Hunting the enemy carry.** After the laning phase, when the enemy's most farmed hero is seen
   alone away from his towers, the 3–4 closest healthy bots go and kill him together. In lane,
   bots harass the enemy carry/mid first.
+- **Bots help their human teammates.** When you start a fight or walk into the enemy half next to
+  enemy heroes, allied support bots (up to 4500 away) and nearby bots come and hit your target.
+  Ping the map (Alt + click) and supports come to the ping.
 - **Cores farm.** The carry and mid keep farming between fights whatever `Push_Frequency` is set to;
   everyone farms less and takes objectives when the team is 2+ heroes up.
 - **Smarter defaults.** Balanced push/farm (`Push_Frequency = 2`) and full thinking (`ThinkLess = 0`).

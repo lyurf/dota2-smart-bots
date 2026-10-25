@@ -13,6 +13,9 @@
 > Carry hunting (`FuncLib/systems/hunt.lua`) runs inside `mode_team_roam_generic.lua`: after laning, the
 > 3-4 closest healthy bots attack the enemy's estimated pos 1/2 (`enemy_role_estimation`) when he is seen
 > isolated away from towers. Each bot computes the same hunter list independently (no shared state).
+> Helping humans (`FuncLib/systems/escort.lua`, also in team_roam): bots join an allied human's fight or
+> gank (supports from 4500, others from 1800) and answer normal map pings. Note: `GetTeamMember()` only
+> returns the bot itself in per-bot sandboxes; use `GetUnitList(UNIT_LIST_ALLIED_HEROES)` for team loops.
 
 
 This document is the single source of truth for understanding, maintaining, and updating the dota2bot-OpenHyperAI codebase. It is designed so that a developer (or AI assistant) can quickly make targeted updates without re-scanning the entire repository.
