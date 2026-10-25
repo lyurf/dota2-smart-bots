@@ -3,12 +3,12 @@ local Customize
 if GetScriptDirectory() == 'bots' then Customize = require('bots.FuncLib.systems.custom_loader')
 else Customize = require( GetScriptDirectory()..'/FuncLib/systems/custom_loader' ) end
 
-local LanguageCode = 'en'
+local LanguageCode = 'ru'
 
 local Localization = {
     en = {
         welcome_msgs = {
-            "Welcome to Smart Bots (HATS), based on Open Hyper AI: ",
+            "Welcome to Smart Bots (HATS) ",
             "You can select the heroes for bots to pick, e.g. 10 same heroes or your dream teams, or change their names. Just customize bots in the Customize/general file.",
             "You can type `!pos X` to swap position with a bot. For example, type: `!pos 2` to go mid lane. Type `!3pos 5` to ask the 3rd bot on the team to play position 5.",
             -- "Note, after the update of 7.38, the `!pos X` command is disabled temporarily for Dire team",
@@ -147,7 +147,7 @@ local Localization = {
     },
     zh = {
         welcome_msgs = {
-            "欢迎来到 Smart Bots (HATS)（基于 Open Hyper AI）：",
+            "欢迎来到 Smart Bots (HATS) ",
             "你可以自定义机器人要选择的英雄，例如 10 个相同的英雄或别的梦幻队伍，或者更改他们的名字。只需修改 Customize/general 文件",
             "你可以输入 `!pos X` 与机器人交换位置。例如，输入：`!pos 2` 来走中路。输入 `!3pos 5` 让队伍中的第3个机器人玩5号位。",
             -- "注意：在 7.38 更新后，夜宴队的 !pos X 命令已暂时被禁用",
@@ -293,7 +293,7 @@ local Localization = {
     },
     ru = {
         welcome_msgs = {
-            "Добро пожаловать в Smart Bots (HATS) на основе Open Hyper AI:",
+            "Добро пожаловать в Smart Bots (HATS) ",
             "Вы можете выбрать героев для ботов, например, 10 одинаковых героев или свою команду мечты, или изменить их имена. Просто измените файл Customize/general.",
             "Вы можете ввести `!pos X`, чтобы поменяться позицией с ботом. Например, введите: `!pos 2`, чтобы пойти на центральную линию. Введите `!3pos 5`, чтобы попросить 3-го бота в команде играть на позиции 5.",
             -- "Обратите внимание: после обновления до версии 7.38 команда !pos X временно отключена для команды Dire.",
@@ -419,7 +419,7 @@ local Localization = {
     },
     ja = {
         welcome_msgs = {
-            "Smart Bots (HATS)（Open Hyper AI ベース）へようこそ：",
+            "Smart Bots (HATS) へようこそ ",
             "ボットが選ぶヒーローを選択したり（例: 10人の同じヒーローや夢のチーム）、名前を変更したりできます。Customize/general ファイルを編集するだけです。",
             "`!pos X` を入力してボットとポジションを交換できます。例えば、`!pos 2` を入力するとミッドレーンに行きます。`!3pos 5` を入力すると、チームの3番目のボットにポジション5をプレイさせます。",
             -- "注意：7.38 のアップデート後、Dire チーム向けの !pos X コマンドは一時的に無効化されています",

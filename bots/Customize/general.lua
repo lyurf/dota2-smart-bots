@@ -27,7 +27,7 @@ Customize.Enable = true
 -- Currently supprot: "en" for "English", "zh" for "中文", "ru" for Russian, "ja" for Japanese
 -- You can also switch in game: type the code (e.g. `ru`) in chat during hero selection, or `!sp ru` at any time.
 -- https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
-Customize.Localization = "en"
+Customize.Localization = "ru"
 
 -- To ban some heroes for bots - Set the heroes you DO NOT want the bots to pick. Use hero internal names.
 -- Hero name ref: https://github.com/forest0xia/dota2bot-OpenHyperAI/discussions/71

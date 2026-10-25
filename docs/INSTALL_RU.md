@@ -99,7 +99,7 @@ dota 2 beta\game\dota\scripts\vscripts\
 
 | Настройка | Что делает | Пример |
 |---|---|---|
-| `Customize.Localization` | Язык сообщений ботов: `"en"`, `"ru"`, `"zh"`, `"ja"` | `Customize.Localization = "ru"` |
+| `Customize.Localization` | Язык сообщений ботов: `"ru"` (по умолчанию), `"en"`, `"zh"`, `"ja"` | `Customize.Localization = "en"` |
 | `Customize.Radiant_Names` / `Dire_Names` | Свои ники ботам; `'Random'` — из списка Smart Bots | `'Nil'` |
 | `Customize.Radiant_Heros` / `Dire_Heros` | Герои ботов по позициям 1–5 (внутренние имена) | `'npc_dota_hero_lion'` |
 | `Customize.Ban` | Герои, которых боты не берут | `'npc_dota_hero_pudge'` |
