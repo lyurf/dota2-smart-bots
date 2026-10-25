@@ -294,9 +294,10 @@ function GetBestDenyCreep(hCreepList)
 end
 
 -- Smart Bots: enemy creep that will soon be killable (low HP and being hit by our creeps),
--- not under the enemy tower. Returns the lowest-HP one.
+-- not under the enemy tower. The ranged creep and the flagbearer come first (more gold, and the
+-- ranged one stands behind the wave, so the bot has to walk there in time), then the lowest HP.
 function GetCreepToPrepare(hCreepList, nEnemyTowers)
-	local best, bestHP = nil, math.huge
+	local best, bestHP, bestScore = nil, math.huge, 0
 	for _, creep in pairs(hCreepList) do
 		if Fu.IsValid(creep) and Fu.CanBeAttacked(creep) then
 			local hp = creep:GetHealth()
@@ -305,9 +306,11 @@ function GetCreepToPrepare(hCreepList, nEnemyTowers)
 			if not underTower
 			and hp <= attackDamage * 2.2
 			and GetUnitToUnitDistance(bot, creep) <= botAttackRange + 450
-			and hp < bestHP
 			then
-				best, bestHP = creep, hp
+				local score = GetCreepScore(creep)
+				if score > bestScore or (score == bestScore and hp < bestHP) then
+					best, bestHP, bestScore = creep, hp, score
+				end
 			end
 		end
 	end

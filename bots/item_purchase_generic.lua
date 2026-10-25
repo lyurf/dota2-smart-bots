@@ -874,7 +874,8 @@ function ItemPurchaseThink()
 	end
 
 	-- Smoke of Deceit
-	if Fu.GetPosition(bot) == 5 and botWorth < 10000
+	-- Smart Bots: smokes are used for ganks on the enemy carry, so the pos 5 keeps buying them later too
+	if Fu.GetPosition(bot) == 5 and botWorth < 16000
 	and Utils.CountBackpackEmptySpace(bot) >= 2
 	and GetItemStockCount('item_smoke_of_deceit') > 1
 	and botGold >= GetItemCost('item_smoke_of_deceit')

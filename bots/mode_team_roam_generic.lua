@@ -97,7 +97,15 @@ function GetDesire()
     or (BOT_MODE_WISDOM_SHRINE and activeMode == BOT_MODE_WISDOM_SHRINE)
     or (BOT_MODE_LOTUS_POOL and activeMode == BOT_MODE_LOTUS_POOL))
     then
-        if bot._stuckModeTime == nil then bot._stuckModeTime = DotaTime() end
+        -- Smart Bots: only a bot that is NOT moving is stuck. Walking to a wisdom shrine, a lotus
+        -- pool or an item takes longer than 5 s, and the old timer pulled every bot out of those
+        -- modes halfway, so bots never took shrines and lotuses.
+        local vNow = bot:GetLocation()
+        if bot._stuckModeTime == nil or bot._stuckPos == nil
+        or Fu.GetLocationToLocationDistance(vNow, bot._stuckPos) > 200 then
+            bot._stuckModeTime = DotaTime()
+            bot._stuckPos = vNow
+        end
         if DotaTime() - bot._stuckModeTime > 5 then
             bot._stuckUnsticking = true
             local enemies = bot:GetNearbyHeroes(1200, true, BOT_MODE_NONE) or {}
@@ -108,6 +116,7 @@ function GetDesire()
         end
     else
         bot._stuckModeTime = nil
+        bot._stuckPos = nil
         bot._stuckUnsticking = false
     end
 
@@ -234,7 +243,9 @@ function GetDesireHelper()
 	-- Tower danger: boost desire above Valve's attack (0.65) so our Think can pull bot back
 	-- at 1200 units from tower where it still dies
 	bTowerDanger = false
-	if Fu.IsLaning(bot) then
+	-- Smart Bots: in the first 10 minutes in every mode, not only laning - bots chasing someone
+	-- after a rune fight were easy to bait under a tower and kill there.
+	if Fu.IsLaning(bot) or DotaTime() < 10 * 60 then
 		if DotaTime() < fTowerDangerUntil and vTowerDangerAwayLoc ~= nil then
 			bTowerDanger = true
 			return 0.7

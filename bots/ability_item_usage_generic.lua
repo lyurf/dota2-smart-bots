@@ -7170,7 +7170,7 @@ X.ConsiderItemDesire['item_smoke_of_deceit'] = function(item)
 		-- Smart Bots: smoke up on the way to a group gank of the enemy carry (FuncLib/systems/hunt.lua),
 		-- while still far from him so the enemy cannot see the group coming.
 		local hunt = bot._smartHunt
-		if #nInRangeAlly >= 2
+		if #Fu.GetAllyList(bot, 1600) >= 2 -- the bot and at least one more hunter
 		and nMode == BOT_MODE_TEAM_ROAM
 		and hunt ~= nil and hunt.active and hunt.lastLoc ~= nil
 		and GetUnitToLocationDistance(bot, hunt.lastLoc) > 2000
