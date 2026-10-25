@@ -15,4 +15,11 @@ for _, name in ipairs(SCRIPTS) do
 	if not ok then print('[SmartBots] '..name..' failed: '..tostring(err)) end
 end
 
-print('[SmartBots] Server scripts started.')
+-- Version in chat and console, so everyone can see which Smart Bots version the host runs.
+if package ~= nil and package.loaded ~= nil then package.loaded['bots.FuncLib.systems.version'] = nil end
+local okV, Version = pcall(require, 'bots.FuncLib.systems.version')
+local sVersion = (okV and type(Version) == 'table' and Version.number) or '?'
+if GameRules ~= nil and GameRules.SendCustomMessage ~= nil then
+	GameRules:SendCustomMessage('Smart Bots '..sVersion..': server scripts started.', 0, 0)
+end
+print('[SmartBots] Version '..sVersion..'. Server scripts started.')
