@@ -30,7 +30,7 @@ local BotNames = {
     "Kamysh",
     "yaSmiroff",
     "Gubinsky",
-    "vox",
+    "shmalei",
     "SlowDown",
 }
 
