@@ -14,6 +14,7 @@ local Localization = require( GetScriptDirectory()..'/FuncLib/systems/localizati
 local Customize = require(GetScriptDirectory()..'/FuncLib/systems/custom_loader')
 Customize.ThinkLess = Customize.Enable and Customize.ThinkLess or 1
 local okDispel, Dispel = pcall(require, GetScriptDirectory()..'/FuncLib/systems/dispel')
+local okTeamAlerts, TeamAlerts = pcall(require, GetScriptDirectory()..'/FuncLib/systems/team_alerts')
 if not okDispel then Dispel = nil end
 if GAMEMODE_TURBO == nil then GAMEMODE_TURBO = 23 end
 if GAMEMODE_ARDM == nil then GAMEMODE_ARDM = 20 end
@@ -8636,6 +8637,12 @@ function ItemUsageThink()
 	if BotBuild ~= nil and not Fu.IsNoAbilityIllution(bot) then
 		local ok, err = pcall(BotBuild.SkillsComplement)
 		if not ok then log('[ERROR] %s SkillsComplement: %s', botName, tostring(err)) end
+	end
+
+	-- Team alerts: missings and Roshan death (self-throttled, one reporter per team)
+	if okTeamAlerts and TeamAlerts ~= nil then
+		local okAlert, errAlert = pcall(TeamAlerts.Update, bot)
+		if not okAlert then log('[ERROR] TeamAlerts: %s', tostring(errAlert)) end
 	end
 
 	-- Dispel check: use dispel items when under dangerous debuffs
