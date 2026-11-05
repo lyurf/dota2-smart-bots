@@ -26,13 +26,19 @@ Install, start a lobby and play.
   (in the original, supports took the core's farm). The bot stays in lane after a trade while above 60% HP
   and does not walk under the enemy tower early in the game. Supports stand forward and trade hits with the
   enemy laners, everyone steps back when creeps pull aggro. `Smart_Laning = false` switches back.
+- **Role-based retreat thresholds.** Cores hold the lane down to 35% HP, supports back off at 50%.
+  The threshold rises with each extra enemy in lane (dive protection) and drops under your own tower.
+- **Situational counters actually bought.** BKB / Pipe / Lotus Orb are inserted into the build *before*
+  luxury items instead of the end of the queue, and 2+ enemy disablers add an early Lotus Orb for cores.
 - **Vision.** Supports actually buy observer wards (pos 5 every ward in stock, pos 4 one when 2+ are in stock).
 - **Less over-farming.** Bots leave the jungle and push when 2 or fewer enemies are alive.
 - **Human-like reaction time.** Configurable delay before casting spells and items when an enemy
   appears, and between casts (`Reaction_Delay` in `Customize/general.lua`).
 - **Smarter drafting.** Fixed the inverted counter-pick math (bots used to pick heroes the enemy
   counters). In Captains Mode a bot captain bans and picks by role fit, counters and synergy
-  instead of random heroes.
+  instead of random heroes. Late picks are deterministic: the single best-scored hero, not a random roll.
+- **Team chat alerts.** One bot per team calls missing enemy laners during the laning phase
+  ("Care: puck missing from mid!") and announces Roshan's death with the aegis out.
 - **Hunting the enemy carry.** After the laning phase, when the enemy's most farmed hero is seen
   alone away from his towers, the 3–4 closest healthy bots go and kill him together, smoked on the way. In lane,
   bots harass the enemy carry/mid first.
