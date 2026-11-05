@@ -214,6 +214,9 @@ const COUNTER_ITEMS = {
     // Against magic damage
     magic_heavy: ["item_black_king_bar", "item_pipe_of_insight", "item_lotus_orb"],
 
+    // Against lockdown (silences/disables): Lotus Orb to dispel and reflect targeted spells
+    lockdown: ["item_lotus_orb"],
+
     // Against illusions
     illusion_heavy: ["item_maelstrom", "item_mjollnir", "item_radiance", "item_battlefury"],
 
@@ -230,6 +233,24 @@ const COUNTER_ITEMS = {
 
 // Items that don't take inventory slots
 const NON_SLOT_ITEMS = ["item_moon_shard", "item_ultimate_scepter_2", "item_aghanims_shard"];
+
+// Late-game luxury items: situational counters must be bought BEFORE these,
+// otherwise the bot only picks up BKB/Lotus after filling slots with luxuries.
+const LUXURY_ITEMS = ["item_travel_boots_2", "item_moon_shard", "item_ultimate_scepter_2"];
+
+function insertBeforeLuxury(build: string[], items: string[]): void {
+    for (const item of items) {
+        if (build.includes(item)) continue;
+        let insertAt = build.length;
+        for (let i = 0; i < build.length; i++) {
+            if (LUXURY_ITEMS.includes(build[i])) {
+                insertAt = i;
+                break;
+            }
+        }
+        build.splice(insertAt, 0, item);
+    }
+}
 
 // Helper functions
 function getHeroRoles(heroName: HeroName) {
@@ -355,6 +376,11 @@ function hasEnemyThreat(enemies: HeroName[], threatType: string): boolean {
             if (enemy === HeroName.PhantomLancer || enemy === HeroName.ChaosKnight || enemy === HeroName.Terrorblade || enemy === HeroName.NagaSiren) {
                 return true;
             }
+        } else if (threatType === "lockdown") {
+            const roles = getHeroRoles(enemy);
+            if (roles.disabler && roles.disabler >= 2) {
+                return true;
+            }
         } else if (threatType === "invisibility") {
             if (enemy === HeroName.Riki || enemy === HeroName.BountyHunter || enemy === HeroName.Clinkz || enemy === HeroName.NyxAssassin) {
                 return true;
@@ -399,21 +425,36 @@ export function GetItemBuild(bot: any, position: Position): string[] {
     const roleItems = getRoleBasedItems(heroName, position);
     build.push(...roleItems);
 
-    // Add counter items based on enemy threats
+    // Add counter items based on enemy threats.
+    // Counter items are inserted before luxury items so they are actually reachable
+    // in a normal game length instead of being last in a 15+ item queue.
     if (hasEnemyThreat(enemies, "evasion")) {
-        build.push(...COUNTER_ITEMS.evasion);
+        insertBeforeLuxury(build, COUNTER_ITEMS.evasion);
     }
 
     if (hasEnemyThreat(enemies, "magic_heavy")) {
-        build.push(...COUNTER_ITEMS.magic_heavy);
+        insertBeforeLuxury(build, COUNTER_ITEMS.magic_heavy);
     }
 
     if (hasEnemyThreat(enemies, "illusion_heavy")) {
-        build.push(...COUNTER_ITEMS.illusion_heavy);
+        insertBeforeLuxury(build, COUNTER_ITEMS.illusion_heavy);
     }
 
     if (hasEnemyThreat(enemies, "invisibility")) {
-        build.push(...COUNTER_ITEMS.invisibility);
+        insertBeforeLuxury(build, COUNTER_ITEMS.invisibility);
+    }
+
+    // Lockdown (2+ disabler enemies): Lotus Orb for cores who get locked down in fights.
+    // BKB already covers most of this for cores; Lotus adds a dispel + reflect option.
+    let disablerCount = 0;
+    for (const enemy of enemies) {
+        const roles = getHeroRoles(enemy);
+        if (roles.disabler && roles.disabler >= 2) {
+            disablerCount++;
+        }
+    }
+    if (disablerCount >= 2 && (position === "pos_1" || position === "pos_2" || position === "pos_3")) {
+        insertBeforeLuxury(build, COUNTER_ITEMS.lockdown);
     }
 
     // Add specific hero counters
@@ -533,6 +574,10 @@ export function GetCounterItems(enemies: HeroName[]): string[] {
 
     if (hasEnemyThreat(enemies, "invisibility")) {
         counterItems.push(...COUNTER_ITEMS.invisibility);
+    }
+
+    if (hasEnemyThreat(enemies, "lockdown")) {
+        counterItems.push(...COUNTER_ITEMS.lockdown);
     }
 
     // Add specific hero counters

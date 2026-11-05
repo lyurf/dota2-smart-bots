@@ -134,7 +134,16 @@ function GetDesireRaw()
 	-- Don't zero laning desire — that leaves the bot with no mode and it dies idle
 	if bot:WasRecentlyDamagedByAnyHero(3)
 	and #Fu.Utils.GetLastSeenEnemyIdsNearLocation(bot:GetLocation(), 800) > 0 then
-		if Fu.GetHP(bot) < 0.4 and not Fu.WeAreStronger(bot, 1200) then
+		-- Dynamic retreat HP threshold: the more the bot is outnumbered in lane,
+		-- the earlier it should back off. Even trade (1v1) keeps the old 0.4 floor;
+		-- being dove 1v2+ retreats at up to 0.55 so the bot leaves before it's locked down.
+		local nLaneEnemies = Fu.GetEnemyCount(bot, 1400)
+		local nLaneAllies = Fu.GetAllyCount(bot, 1400)
+		local fRetreatHP = 0.4 + 0.075 * Max(0, nLaneEnemies - nLaneAllies)
+		if bot:HasModifier('modifier_tower_aura_bonus') then
+			fRetreatHP = fRetreatHP - 0.1 -- under own tower: hold the lane longer
+		end
+		if Fu.GetHP(bot) < fRetreatHP and not Fu.WeAreStronger(bot, 1200) then
 			return BOT_MODE_DESIRE_VERYLOW -- let retreat win
 		end
 	end

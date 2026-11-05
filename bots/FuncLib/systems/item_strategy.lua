@@ -1,28 +1,23 @@
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 -- Lua Library inline imports
-local function __TS__ArrayIndexOf(self, searchElement, fromIndex)
+local function __TS__ArrayIncludes(self, searchElement, fromIndex)
     if fromIndex == nil then
         fromIndex = 0
     end
     local len = #self
-    if len == 0 then
-        return -1
-    end
-    if fromIndex >= len then
-        return -1
-    end
+    local k = fromIndex
     if fromIndex < 0 then
-        fromIndex = len + fromIndex
-        if fromIndex < 0 then
-            fromIndex = 0
-        end
+        k = len + fromIndex
     end
-    for i = fromIndex + 1, len do
+    if k < 0 then
+        k = 0
+    end
+    for i = k + 1, len do
         if self[i] == searchElement then
-            return i - 1
+            return true
         end
     end
-    return -1
+    return false
 end
 
 local function __TS__CountVarargs(...)
@@ -103,6 +98,31 @@ local function __TS__ArraySplice(self, ...)
     return out
 end
 
+local function __TS__ArrayIndexOf(self, searchElement, fromIndex)
+    if fromIndex == nil then
+        fromIndex = 0
+    end
+    local len = #self
+    if len == 0 then
+        return -1
+    end
+    if fromIndex >= len then
+        return -1
+    end
+    if fromIndex < 0 then
+        fromIndex = len + fromIndex
+        if fromIndex < 0 then
+            fromIndex = 0
+        end
+    end
+    for i = fromIndex + 1, len do
+        if self[i] == searchElement then
+            return i - 1
+        end
+    end
+    return -1
+end
+
 local function __TS__ObjectEntries(obj)
     local result = {}
     local len = 0
@@ -120,26 +140,6 @@ local function __TS__ArrayPushArray(self, items)
         self[len] = items[i]
     end
     return len
-end
-
-local function __TS__ArrayIncludes(self, searchElement, fromIndex)
-    if fromIndex == nil then
-        fromIndex = 0
-    end
-    local len = #self
-    local k = fromIndex
-    if fromIndex < 0 then
-        k = len + fromIndex
-    end
-    if k < 0 then
-        k = 0
-    end
-    for i = k + 1, len do
-        if self[i] == searchElement then
-            return true
-        end
-    end
-    return false
 end
 -- End of Lua Library inline imports
 local ____exports = {}
@@ -305,11 +305,42 @@ local ITEMS_BY_POSITION = {
 local COUNTER_ITEMS = {
     evasion = {"item_monkey_king_bar", "item_bloodthorn"},
     magic_heavy = {"item_black_king_bar", "item_pipe_of_insight", "item_lotus_orb"},
+    lockdown = {"item_lotus_orb"},
     illusion_heavy = {"item_maelstrom", "item_mjollnir", "item_radiance", "item_battlefury"},
     invisibility = {"item_dust", "item_gem", "item_ward_sentry"},
     heroes = {[HeroName.PhantomAssassin] = {"item_monkey_king_bar", "item_bloodthorn"}, [HeroName.Riki] = {"item_dust", "item_gem", "item_ward_sentry"}, [HeroName.Antimage] = {"item_cyclone", "item_black_king_bar"}}
 }
 local NON_SLOT_ITEMS = {"item_moon_shard", "item_ultimate_scepter_2", "item_aghanims_shard"}
+local LUXURY_ITEMS = {"item_travel_boots_2", "item_moon_shard", "item_ultimate_scepter_2"}
+local function insertBeforeLuxury(build, items)
+    for ____, item in ipairs(items) do
+        do
+            local __continue3
+            repeat
+                if __TS__ArrayIncludes(build, item) then
+                    __continue3 = true
+                    break
+                end
+                local insertAt = #build
+                do
+                    local i = 0
+                    while i < #build do
+                        if __TS__ArrayIncludes(LUXURY_ITEMS, build[i + 1]) then
+                            insertAt = i
+                            break
+                        end
+                        i = i + 1
+                    end
+                end
+                __TS__ArraySplice(build, insertAt, 0, item)
+                __continue3 = true
+            until true
+            if not __continue3 then
+                break
+            end
+        end
+    end
+end
 local function getHeroRoles(heroName)
     return HeroRolesMap[heroName] or ({})
 end
@@ -406,6 +437,11 @@ local function hasEnemyThreat(enemies, threatType)
             if enemy == HeroName.PhantomLancer or enemy == HeroName.ChaosKnight or enemy == HeroName.Terrorblade or enemy == HeroName.NagaSiren then
                 return true
             end
+        elseif threatType == "lockdown" then
+            local roles = getHeroRoles(enemy)
+            if roles.disabler and roles.disabler >= 2 then
+                return true
+            end
         elseif threatType == "invisibility" then
             if enemy == HeroName.Riki or enemy == HeroName.BountyHunter or enemy == HeroName.Clinkz or enemy == HeroName.NyxAssassin then
                 return true
@@ -434,16 +470,26 @@ function ____exports.GetItemBuild(bot, position)
     local roleItems = getRoleBasedItems(heroName, position)
     __TS__ArrayPushArray(build, roleItems)
     if hasEnemyThreat(enemies, "evasion") then
-        __TS__ArrayPushArray(build, COUNTER_ITEMS.evasion)
+        insertBeforeLuxury(build, COUNTER_ITEMS.evasion)
     end
     if hasEnemyThreat(enemies, "magic_heavy") then
-        __TS__ArrayPushArray(build, COUNTER_ITEMS.magic_heavy)
+        insertBeforeLuxury(build, COUNTER_ITEMS.magic_heavy)
     end
     if hasEnemyThreat(enemies, "illusion_heavy") then
-        __TS__ArrayPushArray(build, COUNTER_ITEMS.illusion_heavy)
+        insertBeforeLuxury(build, COUNTER_ITEMS.illusion_heavy)
     end
     if hasEnemyThreat(enemies, "invisibility") then
-        __TS__ArrayPushArray(build, COUNTER_ITEMS.invisibility)
+        insertBeforeLuxury(build, COUNTER_ITEMS.invisibility)
+    end
+    local disablerCount = 0
+    for ____, enemy in ipairs(enemies) do
+        local roles = getHeroRoles(enemy)
+        if roles.disabler and roles.disabler >= 2 then
+            disablerCount = disablerCount + 1
+        end
+    end
+    if disablerCount >= 2 and (position == "pos_1" or position == "pos_2" or position == "pos_3") then
+        insertBeforeLuxury(build, COUNTER_ITEMS.lockdown)
     end
     for ____, enemy in ipairs(enemies) do
         if COUNTER_ITEMS.heroes[enemy] then
@@ -522,6 +568,9 @@ function ____exports.GetCounterItems(enemies)
     end
     if hasEnemyThreat(enemies, "invisibility") then
         __TS__ArrayPushArray(counterItems, COUNTER_ITEMS.invisibility)
+    end
+    if hasEnemyThreat(enemies, "lockdown") then
+        __TS__ArrayPushArray(counterItems, COUNTER_ITEMS.lockdown)
     end
     for ____, enemy in ipairs(enemies) do
         if COUNTER_ITEMS.heroes[enemy] then

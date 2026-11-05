@@ -304,13 +304,31 @@ function BestHeroForRole(positions, canPlay)
         end
     end
     local best = PickFromTop(scored, PICK_FUZZ) or PickFromTop(scoredLooseFit, PICK_FUZZ)
-    if best ~= nil then
+    local latePick = nil
+    local pickedCount = 0
+    for ____, h in ipairs(allBotHeroes) do
+        if IsCMPickedHero(
+            GetTeam(),
+            h
+        ) then
+            pickedCount = pickedCount + 1
+        end
+    end
+    if pickedCount >= 3 and #scored > 0 then
+        __TS__ArraySort(
+            scored,
+            function(____, a, b) return b.score - a.score end
+        )
+        latePick = scored[1].name
+    end
+    local chosen = latePick or best
+    if chosen ~= nil then
         log(
             "CM pick for positions %s: %s",
             table.concat(positions, "/"),
-            best
+            chosen
         )
-        return best
+        return chosen
     end
     do
         local i = 0
