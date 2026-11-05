@@ -46,6 +46,7 @@ const WeakHeroes: string[] = [
     "npc_dota_hero_dark_willow",
     "npc_dota_hero_hoodwink",
     "npc_dota_hero_wisp",
+    "npc_dota_hero_ringmaster",
 ];
 
 const HeroLanes: { [team: string]: { [i: number]: number } } = {

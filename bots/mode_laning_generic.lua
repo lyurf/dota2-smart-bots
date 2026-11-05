@@ -134,12 +134,14 @@ function GetDesireRaw()
 	-- Don't zero laning desire — that leaves the bot with no mode and it dies idle
 	if bot:WasRecentlyDamagedByAnyHero(3)
 	and #Fu.Utils.GetLastSeenEnemyIdsNearLocation(bot:GetLocation(), 800) > 0 then
-		-- Dynamic retreat HP threshold: the more the bot is outnumbered in lane,
-		-- the earlier it should back off. Even trade (1v1) keeps the old 0.4 floor;
-		-- being dove 1v2+ retreats at up to 0.55 so the bot leaves before it's locked down.
+		-- Dynamic, role-based retreat HP threshold: supports back off early (0.5),
+		-- cores hold the lane longer (0.35) to keep farming. Outnumbered in lane adds
+		-- +0.075 per extra enemy (capped at 0.6); own tower aura gives -0.1.
 		local nLaneEnemies = Fu.GetEnemyCount(bot, 1400)
 		local nLaneAllies = Fu.GetAllyCount(bot, 1400)
-		local fRetreatHP = 0.4 + 0.075 * Max(0, nLaneEnemies - nLaneAllies)
+		local fBaseRetreatHP = Fu.IsCore(bot) and 0.35 or 0.5
+		local fRetreatHP = fBaseRetreatHP + 0.075 * Max(0, nLaneEnemies - nLaneAllies)
+		fRetreatHP = Min(0.6, fRetreatHP)
 		if bot:HasModifier('modifier_tower_aura_bonus') then
 			fRetreatHP = fRetreatHP - 0.1 -- under own tower: hold the lane longer
 		end

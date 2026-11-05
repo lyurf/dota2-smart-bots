@@ -511,7 +511,8 @@ WeakHeroes = {
     "npc_dota_hero_primal_beast",
     "npc_dota_hero_dark_willow",
     "npc_dota_hero_hoodwink",
-    "npc_dota_hero_wisp"
+    "npc_dota_hero_wisp",
+    "npc_dota_hero_ringmaster"
 }
 HeroLanes = {TEAM_RADIANT = {
     [1] = Lane.Bot,
