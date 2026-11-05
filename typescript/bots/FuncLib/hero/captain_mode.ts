@@ -336,9 +336,21 @@ function BestHeroForRole(positions: number[], canPlay: (hero: HeroName) => boole
         }
     }
     const best = PickFromTop(scored, PICK_FUZZ) ?? PickFromTop(scoredLooseFit, PICK_FUZZ);
-    if (best !== undefined) {
-        log("CM pick for positions %s: %s", positions.join("/"), best);
-        return best;
+    // Late in the draft (3+ heroes already picked), stop fuzzing: with the core of the
+    // lineup set, drafting the single best available hero beats a random roll among top 3.
+    let latePick: HeroName | undefined = undefined;
+    let pickedCount = 0;
+    for (const h of allBotHeroes) {
+        if (IsCMPickedHero(GetTeam(), h)) pickedCount++;
+    }
+    if (pickedCount >= 3 && scored.length > 0) {
+        scored.sort((a, b) => b.score - a.score);
+        latePick = scored[0].name;
+    }
+    const chosen = latePick ?? best;
+    if (chosen !== undefined) {
+        log("CM pick for positions %s: %s", positions.join("/"), chosen);
+        return chosen;
     }
     // Fallback: any free hero that can play the role (bounded, never loops forever).
     for (let i = 0; i < 300; i++) {

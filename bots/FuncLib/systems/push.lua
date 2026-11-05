@@ -480,6 +480,9 @@ function ____exports.GetPushDesireHelper(bot, lane)
             result = math.min(result, 0.15)
         end
     end
+    if not _isAllBotsGame and readyToPush and botHP > 0.5 and not gameState.isLaningPhase and not gameState.isEarlyGame and eAliveCount <= 2 and aAliveCount >= 4 then
+        result = math.max(result, 0.45)
+    end
     if _isAllBotsGame then
         if not gameState.isLaningPhase then
             result = math.max(result, 0.02)
@@ -1294,24 +1297,24 @@ function ____exports.PushThink(bot, lane)
     end
     for ____, creep in ipairs(nCreeps) do
         do
-            local __continue254
+            local __continue255
             repeat
                 if not Fu.IsValid(creep) or not Fu.CanBeAttacked(creep) then
-                    __continue254 = true
+                    __continue255 = true
                     break
                 end
                 if Fu.IsTormentor(creep) or Fu.IsRoshan(creep) then
-                    __continue254 = true
+                    __continue255 = true
                     break
                 end
                 if bTowerNearby and GetUnitToLocationDistance(creep, vTeamFountain) >= towerDistanceToFountain + 500 then
-                    __continue254 = true
+                    __continue255 = true
                     break
                 end
                 bot:Action_AttackUnit(creep, true)
                 return
             until true
-            if not __continue254 then
+            if not __continue255 then
                 break
             end
         end

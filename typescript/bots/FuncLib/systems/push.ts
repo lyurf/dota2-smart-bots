@@ -651,6 +651,12 @@ export function GetPushDesireHelper(bot: Unit, lane: Lane): BotModeDesire {
 
     // === FLOORS (boost desire) — only for all-bots games to create pressure ===
     // In vs-human games, push desire stays within nMaxDesire so farm (0.7) can win.
+    // Exception: with 3+ enemies dead, even vs humans the team should group and take
+    // objectives — a real team always punishes that window.
+    if (!_isAllBotsGame && readyToPush && botHP > 0.5 && !gameState.isLaningPhase
+        && !gameState.isEarlyGame && eAliveCount <= 2 && aAliveCount >= 4) {
+        result = math.max(result, 0.45);
+    }
     if (_isAllBotsGame) {
         if (!gameState.isLaningPhase) {
             result = math.max(result, 0.02);
